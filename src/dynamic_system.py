@@ -75,7 +75,7 @@ class DynamicSystem2D:
         self,
         model_func: callable,
         params: dict = None,
-    ):
+    ) -> None:
         """
         Args:
             model_func: function returning a vector of (dx/dt, dy/dt)
@@ -124,7 +124,7 @@ class DynamicSystem2D:
         param_values: np.ndarray,
         state_init: np.ndarray,
         ax: plt.Axes,
-    ):
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Plot bifurcation diagram for a dynamic system.
 
@@ -133,6 +133,10 @@ class DynamicSystem2D:
 
         Real part of the eigenvalues of the Jacobian indicates the system stability/instability
         per parameter value (<0 ==> stable, >0 ==> unstable).
+
+        Returns:
+            bifurcation_points: array of bifurcation.
+            equilibria: array of equilibrium point coordinates.
         """
         equilibria = []
         stability_mask = []
@@ -218,13 +222,70 @@ class DynamicSystem2D:
         ax.legend(loc='upper right')
         ax.grid(True)
     
+    def extract_limit_cycle(
+        self,
+        solution: np.ndarray,
+        clip_ratio: float = 0.5,
+        eps: float = 1e-4,
+    ) -> np.ndarray | None:
+        """
+        Extract limit cycle from a trajectory if it exists.
+        
+        Returns:
+            solution_ss: limit cycle (if found) or None
+        """
+        x = solution[:, 0]
+
+        # clip transient (consider only the asymptotic behavior of the system)
+        clip = int(len(x) * clip_ratio)
+        solution_ss = solution[clip:]
+        x_ss = solution_ss[:, 0]
+
+        # check: is solution bounded
+        if not np.all(np.isfinite(solution_ss)):
+            return None
+        
+        # check: not an equilibrium (consider only cycles, not points)
+        if np.var(x_ss) < eps:
+            return None
+
+        return solution_ss
+    
+    def plot_limit_cycle(
+        self,
+        ax: plt.Axes,
+        time_span: np.ndarray,
+        bounds: tuple = (-2, 2),
+        n_attempts: int = 5,
+    ) -> bool:
+        """
+        Try to detect and plot limit cycle.
+        """
+        found = False
+
+        for _ in range(n_attempts):
+            state_init = np.random.uniform(bounds[0], bounds[1], size=2)
+            solution = self.solve(state_init, time_span)
+
+            if not np.all(np.isfinite(solution)):
+                continue
+
+            cycle = self.extract_limit_cycle(solution)
+            if cycle is not None:
+                ax.plot(cycle[:, 0], cycle[:, 1], color='red', linewidth=2, label='limit cycle')
+                found = True
+                break
+
+        return found
+
     def plot_phase_portrait_dense(
         self,
         ax: plt.Axes,
         time_span: np.ndarray,
         bounds: tuple = (-2, 2),
         grid_size: int = 10,
-    ):
+        show_limit_cycle: bool = True,
+    ) -> None:
         """
         Plot phase portrait based on a grid of initial states.
         """
@@ -261,6 +322,12 @@ class DynamicSystem2D:
         V /= (norm + 1e-8)
 
         ax.streamplot(X, Y, U, V, density=1.2, color='black', linewidth=0.5)
+
+        # try to find and plot the limit cycle
+        if show_limit_cycle:
+            found = self.plot_limit_cycle(ax=ax, time_span=time_span, bounds=bounds)
+            if found:
+                print("Limit cycle found!")
 
         ax.set_xlim(xmin, xmax)
         ax.set_ylim(ymin, ymax)
