@@ -163,7 +163,7 @@ class DynamicSystem2D:
             if eigenvalues_last is not None:
                 if np.any(np.real(eigenvalues_last) * np.real(eigenvalues) < 0):
                     bifurcation_points.append(val)
-                    ax.axvline(val, linestyle='--', alpha=0.7)
+                    ax.axvline(val, linestyle='--', label='bifurcation point')
 
             equilibria.append(equilibrium)
             param_used.append(val)
@@ -174,6 +174,7 @@ class DynamicSystem2D:
         equilibria = np.array(equilibria)
         stability_mask = np.array(stability_mask)
         param_used = np.array(param_used)
+        bifurcation_points = np.array(bifurcation_points)
 
         x_eq = equilibria[:, 0]
 
@@ -189,13 +190,7 @@ class DynamicSystem2D:
 
         for t in set(types):
             mask = np.array([tt == t for tt in types])
-            ax.scatter(
-                param_used[mask],
-                x_eq[mask],
-                label=t,
-                color=type_to_color.get(t, 'gray'),
-                s=20,
-            )
+            ax.scatter( param_used[mask], x_eq[mask], label=t, color=type_to_color.get(t, 'gray'), s=20)
 
         ax.set_xlabel(param_name)
         ax.set_ylabel('x')
@@ -203,7 +198,7 @@ class DynamicSystem2D:
         ax.legend()
         ax.grid(True)
 
-        return bifurcation_points
+        return bifurcation_points, equilibria
     
     def plot_trajectory(
         self,
@@ -247,24 +242,16 @@ class DynamicSystem2D:
 
                 solution = self.solve(state_init, time_span)
                 if np.all(np.isfinite(solution)):
-                    ax.plot(solution[:, 0], solution[:, 1], color='blue', alpha=0.4)
+                    ax.plot(solution[:, 0], solution[:, 1], color='blue', alpha=0.5)
 
         # plot vector field
-        X, Y = np.meshgrid(
-            np.linspace(xmin, xmax, 25),
-            np.linspace(ymin, ymax, 25)
-        )
-
+        X, Y = np.meshgrid(np.linspace(xmin, xmax, 25), np.linspace(ymin, ymax, 25))
         U = np.zeros_like(X)
         V = np.zeros_like(Y)
 
         for i in range(X.shape[0]):
             for j in range(X.shape[1]):
-                dx, dy = self.model_func(
-                    0,
-                    np.array([X[i, j], Y[i, j]]),
-                    **self.params
-                )
+                dx, dy = self.model_func( 0, np.array([X[i, j], Y[i, j]]), **self.params)
                 U[i, j] = dx
                 V[i, j] = dy
 
