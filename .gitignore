@@ -45,8 +45,9 @@ ipython_config.py
 # VS Code folders
 .vscode/
 
-# Attachments
-*.pdf
+# Attachments and references
+_reference/
 *.png
 *.jpg
 *.jpeg
+# *.pdf
