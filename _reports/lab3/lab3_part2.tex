@@ -1,0 +1,461 @@
+\documentclass[17pt]{article}
+
+\usepackage{cmap}	% поиск по документу
+\usepackage{hyperref}	% поддержка гиперссылок
+\usepackage{geometry}	% настройка геометрии документа
+\usepackage{multicol}   % настройка шаблона расположения текста
+\usepackage{extsizes}	% расширенная настройка размеров шрифтов
+\usepackage{indentfirst}    % отступ для первого абзаца
+\usepackage{tabularx}	% расширенные таблицы
+\usepackage{makecell}   % настройка клеток таблиц
+\usepackage{caption}    % настройка подписей к вставкам
+\usepackage[table]{xcolor}  % покраска таблиц
+\usepackage{graphicx}	% вставка изображений
+\usepackage{wrapfig, booktabs}	% оформление таблиц
+\usepackage{graphicx, caption, subcaption}
+\usepackage{minted}    % вставка кода
+
+\usepackage{color}	% настройка цвета текста - \textcolor
+\usepackage{soul}	% выделение текста - \hl
+\usepackage[T2A]{fontenc}	% поддержка кириллических символов
+\usepackage[utf8]{inputenc} % поддержка кириллических символов
+\usepackage[english,russian]{babel}	% поддержка кириллических символов
+\usepackage{csquotes, biblatex}   % вывод библиографии
+
+\usepackage{mathcmd}	% математические команды
+\usepackage{amsfonts}	% математические символы 1
+\usepackage{amssymb}	% математические символы 2
+\usepackage{amsmath}	% математические символы 3
+\usepackage{amsthm}	% работа с теоремами
+
+% Настройка окружения теорем 1 (RU)
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{corollary}{Следствие}[theorem]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{example}{Пример}[section]
+\newtheorem*{remark}{Утверждение}
+\addto\captionsrussian{\renewcommand\proofname{Док-во:}}
+
+% Настройка окружения теорем 2 (EN)
+%\newtheorem{theorem}{TH}[section]
+%\newtheorem{corollary}{CO}[theorem]
+%\newtheorem{lemma}[theorem]{LM}
+%\newtheorem{example}{EX}[section]
+%\addto\captionsrussian{\renewcommand\proofname{PF:}}
+
+\renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemiii}{-}
+
+\addbibresource{biblio.bib}
+\graphicspath{ {./images/} }
+
+% Настройка оформления вставок кода
+\setminted{xleftmargin=\parindent, fontsize=\footnotesize, linenos, tabsize=2, breaklines}
+\usemintedstyle{emacs} 
+
+% Настройка отступов
+\geometry{
+    a4paper,
+    % total={200mm,287mm},
+    left=10mm,
+    right=10mm,
+    top=10mm,
+    bottom=20mm
+}
+
+% Заголовок
+\title{\large{Методы моделирования и анализа стохастических систем\\ Лабораторная работа № 3, Часть 2}}
+\author{\large{Костарев Иван, МЕНМ-150201}}
+\date{весенний семестр 2025/2026}
+
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+
+Определим константы для численных экспериментов:
+\begin{minted}{python}
+N_STEPS_DEFAULT = 1000
+EPSILON_DEFAULT = 0.1
+MARGIN_DEFAULT = 1e-6
+\end{minted}
+
+\section{Статистический анализ результатов прямого численного моделирования}
+
+(а) Определим процедуры обновления состояния \texttt{step\_stochastic\_em}, \texttt{step\_stochastic\_rk4}, задающие временной шаг стохастической системы, и запишем стохастические системы FHN и SN. В работе будем использовать стохастический метод Рунге-Кутты 4-го порядка для обновления состояния (процедура \texttt{step\_stochastic\_rk4}).
+
+FHN с аддитивным шумом в 1-м уравнении:  
+$$
+\begin{cases}
+    \dot{x} = \frac{1}{\delta} (x - \frac{x^3}{3} - y) + \varepsilon \cdot \xi_1 \\
+    \dot{y} = x + a
+\end{cases}
+$$
+
+SN с аддитивным шумом в обоих уравнениях:  
+$$
+\begin{cases}
+    \dot{x} = y - x + \varepsilon \cdot \xi_1 \\
+    \dot{y} = -a x + b y - x^2 y + \varepsilon \cdot \xi_2
+\end{cases}
+$$
+
+(б) Для устойчивых равновесий построим облака случайных траекторий для разных значений интенсивности шума $\varepsilon$.
+
+Облака траекторий системы FHN вблизи устойчивого равновесия $(\overline{x}, \overline{y}) = (-a, \frac{a^3}{3} - a)$ при $a > 1$:
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{figure1.png}
+\caption{}
+\end{figure}
+
+Облака траекторий системы SN вблизи устойчивого равновесия $(\overline{x}, \overline{y}) = (\sqrt{b - a}, \sqrt{b - a})$:
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{figure2.png}
+\caption{}
+\end{figure}
+
+(в) Запишем матрицу ковариации для облака при фиксированном $\varepsilon$, найдем ее собственные числа $\overline{\lambda_1}(a), \overline{\lambda_2}(a)$.
+
+$$
+\operatorname{cov}(x, y) =
+\begin{pmatrix}
+    \frac{1}{n} \sum_{i=1}^n (x_i - \bar{x})^2 & \frac{1}{n} \sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y}) \\
+    \frac{1}{n} \sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y}) & \frac{1}{n} \sum_{i=1}^n (y_i - \bar{y})^2
+\end{pmatrix}
+$$
+
+Построим графики зависимостей $\overline{\lambda_1}(a), \overline{\lambda_2}(a)$ в зоне устойчивых равновесий $(a_1, a_2)$. Будем использовать значение $\varepsilon = 0.1$.
+
+Будем использовать от $1$ до $100$ симуляций и $10^3$ шагов по времени в каждой из них, таким образом получим графики для выборок размеров $N = 1 \cdot 10^3$ и $N = 100 \cdot 10^3$.
+
+В модели FHN при значении параметра $a > 1$ равновесие $(x, y) = (0, 0)$ устойчиво.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{figure3.png}
+\caption{}
+\end{figure}
+
+В модели SN при значении параметра $a < 1$ устойчивыми являются равновесия:
+
+$$
+\begin{cases}
+    (\overline{x}_2, \overline{y}_2) = (\sqrt{b - a}, \sqrt{b - a}) \\
+    (\overline{x}_3, \overline{y}_3) = (-\sqrt{b - a}, -\sqrt{b - a})
+\end{cases}
+$$
+
+Вблизи них система ведет себя одинаково с точностью до симметрии. Рассмотрим одно из них, например $(\overline{x}_2, \overline{y}_2)$.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{figure4.png}
+\caption{}
+\end{figure}
+
+\section{Анализ с помощью метода стохастической чувствительности}
+(а) Запшем решение уравнения Ляпунова в общем виде.
+
+$$
+F W + W F^T + S S^T = 0
+$$
+
+С учетом изначальной формы СДУ:
+
+$$
+\begin{cases}
+    \dot{x} = f(x, y) + \varepsilon \sigma_1(x, y) \xi_1 \\
+    \dot{y} = g(x, y) + \varepsilon \sigma_2(x, y) \xi_2
+\end{cases}
+$$
+
+Имеем
+$$
+S = 
+\begin{pmatrix}
+    \sigma_1(x, y) & 0 \\
+    0 & \sigma_2(x, y)
+\end{pmatrix}
+\implies
+SS^T = 
+\begin{pmatrix}
+    \sigma_1^2(x, y) & 0 \\
+    0 & \sigma_2^2(x, y)
+\end{pmatrix}
+= 
+\begin{pmatrix}
+    s_1 & 0 \\
+    0 & s_2
+\end{pmatrix}
+$$
+
+$$
+F = 
+\begin{pmatrix}
+    f'_x(x, y) & f'_y(x, y) \\
+    g'_x(x, y) & g'_y(x, y)
+\end{pmatrix}
+=
+\begin{pmatrix}
+    a & b \\
+    c & d
+\end{pmatrix}
+$$
+
+$$
+W = 
+\begin{pmatrix}
+    w_1 & w_2 \\
+    w_2 & w_3
+\end{pmatrix}
+$$
+
+Тогда уравнение (3) имеет вид:
+
+$$
+\begin{pmatrix}
+    a & b \\
+    c & d
+\end{pmatrix}
+\begin{pmatrix}
+    w_1 & w_2 \\
+    w_2 & w_3
+\end{pmatrix}
++
+\begin{pmatrix}
+    w_1 & w_2 \\
+    w_2 & w_3
+\end{pmatrix}
+\begin{pmatrix}
+    a & c \\
+    b & d
+\end{pmatrix}
++
+\begin{pmatrix}
+    s_1 & 0 \\
+    0 & s_2
+\end{pmatrix}
+= 0
+$$
+
+$$
+\begin{pmatrix}
+    a w_1 + b w_2 & a w_2 + b w_3 \\
+    c w_1 + d w_2 & c w_2 + d w_3
+\end{pmatrix}
++
+\begin{pmatrix}
+    a w_1 + b w_2 & c w_1 + d w_2 \\
+    a w_2 + b w_3 & c w_2 + d w_3
+\end{pmatrix}
+=
+- \begin{pmatrix}
+    s_1 & 0 \\
+    0 & s_2
+\end{pmatrix}
+$$
+
+$$
+\begin{pmatrix}
+    2a w_1 + 2b w_2 & cw_1 + (a+d)w_2 + bw_3 \\
+    cw_1 + (a+d)w_2 + bw_3 & 2c w_2 + 2d w_3
+\end{pmatrix}
+=
+- \begin{pmatrix}
+    s_1 & 0 \\
+    0 & s_2
+\end{pmatrix}
+$$
+
+В силу симметрии матриц в левой и правой частях, получаем систему из 3-х уравнений:
+$$
+\begin{cases}
+   2a w_1 + 2b w_2 = -s_1 \\
+   c w_1 + (a+d) w_2 + b w_3 = 0 \\
+   2c w_2 + 2d w_3 = -s_2
+\end{cases}
+\implies
+\begin{cases}
+    w_1 = -\frac{s_1 + 2b w_2}{2a} \\
+    w_3 = -\frac{s_2 + 2c w_2}{2d} \\
+    -c \cdot \frac{s_1 + 2b w_2}{2a} + (a + d) w_2 - b \cdot \frac{s_2 + 2c w_2}{2d} = 0
+\end{cases}
+$$
+
+Решение относительно $w_1, w_2, w_3$:
+
+$$
+\begin{cases}
+    w_2 = \frac{
+        \frac{c s_1}{2a} + \frac{b s_2}{2c}
+    }{
+        a + d - \frac{b c}{a} - \frac{b c}{d}
+    } \\
+    w_1 = -\frac{s_1 + 2b w_2}{2a} \\
+    w_3 = -\frac{s_2 + 2c w_2}{2d}
+\end{cases}
+$$
+
+Получено явное решение, но для удобства программного решения можно представить полученную систему уравнений в матричной форме:
+
+$$
+\begin{pmatrix}
+    2a & 2b & 0 \\
+    c & a+d & b \\
+    0 & 2c & 2d
+\end{pmatrix}
+\begin{pmatrix}
+    w_1 \\ w_2 \\ w_3
+\end{pmatrix}
+=
+\begin{pmatrix}
+    -s_1 \\ 0 \\ -s_2
+\end{pmatrix}
+$$
+
+Запишем матрицу стохастической чувствительности $W$ для FHN, где
+
+$$
+Q = SS^T = 
+\begin{pmatrix}
+    \sigma_1^2(x, y) & 0 \\
+    0 & \sigma_2^2(x, y)
+\end{pmatrix}
+=
+\begin{pmatrix}
+    1 & 0 \\
+    0 & 0
+\end{pmatrix}
+$$
+
+$$
+F = 
+\begin{pmatrix}
+    f'_x(x, y) & f'_y(x, y) \\
+    g'_x(x, y) & g'_y(x, y)
+\end{pmatrix}
+=
+\begin{pmatrix}
+    \frac{1}{\delta} (1 - x^2) & \frac{1}{\delta} \\
+    1 & 0
+\end{pmatrix}
+$$
+
+Запишем матрицу стохастической чувствительности $W$ для SN, где
+
+$$
+Q = SS^T = 
+\begin{pmatrix}
+    \sigma_1^2(x, y) & 0 \\
+    0 & \sigma_2^2(x, y)
+\end{pmatrix}
+=
+\begin{pmatrix}
+    1 & 0 \\
+    0 & 1
+\end{pmatrix}
+$$
+
+$$
+F = 
+\begin{pmatrix}
+    f'_x(x, y) & f'_y(x, y) \\
+    g'_x(x, y) & g'_y(x, y)
+\end{pmatrix}
+=
+\begin{pmatrix}
+    -1 & 1 \\
+    -a - 2xy & b - x^2
+\end{pmatrix}
+$$
+
+\begin{minted}{python}
+a, b = 0.5, 2
+noise_mask = np.array([1, 1])
+equilibrium_expr = np.array([np.sqrt(b - a), np.sqrt(b - a)])
+W = stochastic_sensitivity_matrix_2d(
+    model_func=model_SN,
+    params=dict(a=a, b=b),
+    equilibrium=equilibrium_expr,
+    noise_mask=noise_mask,
+)
+W
+\end{minted}
+
+(б) Найдем собственные числа $\lambda_1, \lambda_2$ матрицы стохастической чувствительности $W$.
+
+Построим зависимость $\varepsilon \cdot \lambda_1(a), \varepsilon \cdot \lambda_2(a)$ для $\varepsilon$ из пункта 1 (б) для системы FHN.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{figure5.png}
+\caption{}
+\end{figure}
+
+Построим зависимость $\varepsilon \cdot \lambda_1(a), \varepsilon \cdot \lambda_2(a)$ для $\varepsilon$ из пункта 1 (б) для системы SN.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{figure6.png}
+\caption{}
+\end{figure}
+
+Полученные графики схожи с графиками из пункта 1 (в), построенными эмпирически с помощью симуляции, по характеру изменения собственных значений вблизи границ интервала стабильности равновесных точек (зеленая зона). Однако при вычислении аналитическим путем графики получаются менее плавные, и более резко начинают возрастать на границах интервала стабильности.
+
+\section{Доверительные эллипсы}
+(в) Для выбранных нескольких значений параметра $a$ построим доверительные эллипсы (возьмем облако из пункта 1 (б)).
+
+В двумерном случае матрица стохастической чувствительности $W$ характеризует дисперсию решений стохастической системы вокруг устойчивого равновесия $\overline{x} = (\overline{x_1}, \overline{x_2})$ в форме доверительного эллипса:
+
+$$
+\frac{z_1^2}{\lambda_1} + \frac{z_2^2}{\lambda_2} = 2k^2 \varepsilon^2
+$$
+
+Пусть $\lambda_1, \lambda_2$ -- собственные числа матрицы $W$, а $V$ -- матрица собственных векторов $v_1 = (v_{11}, v_{21})^T$, $v_2 = (v_{12}, v_{22})^T$, записанных по столбцам:
+
+$$
+V = \begin{pmatrix} v_{11} & v_{12} \\ v_{21} & v_{22} \end{pmatrix}
+$$
+
+Координаты $x = (x_1, x_2)$ доверительного эллипса в базисе собственных векторов могут быть записаны так:
+
+$$
+x = \overline{x} + V \cdot \begin{pmatrix} z_1 \\ z_2 \end{pmatrix},
+$$
+где $z_1(\varphi) = \sqrt{2\lambda_1} \cdot \varepsilon \cdot k \cdot \cos\varphi$, $z_2(\varphi) = \sqrt{2\lambda_2} \cdot \varepsilon \cdot k \cdot \sin\varphi$ ($0 \leq \varphi \leq 2\pi$).
+
+Коэффициент $k$ связан с доверительной вероятностью $P$ попадания решений стохастической системы в доверительный эллипс:
+
+$$
+k = \sqrt{-\ln(1 - P)}
+$$
+
+Построим доверительные эллипсы для системы FHN. Рассмотрим несколько значений параметра $a$ внутри интервала, где рассматриваемое равновесие сохраняет устойчивость.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{figure7.png}
+\caption{}
+\end{figure}
+
+Построим доверительные эллипсы для системы SN. Рассмотрим несколько значений параметра $a$ внутри интервала, где рассматриваемое равновесие сохраняет устойчивость.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{figure8.png}
+\caption{}
+\end{figure}
+
+
+% # TODO:
+% - Удостовериться, что при симуляции облака траккторий, все траектории стартуют строго в равновесии
+% - Построить графики собственных чисел матрицы стохастической чувствительности и матрицы ковариации (теоретический и эмпирический) рядом на одном графике и сравнить
+
+\end{document}

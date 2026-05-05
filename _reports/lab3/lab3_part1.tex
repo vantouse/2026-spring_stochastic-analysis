@@ -1,0 +1,243 @@
+\documentclass[17pt]{article}
+
+\usepackage{cmap}	% поиск по документу
+\usepackage{hyperref}	% поддержка гиперссылок
+\usepackage{geometry}	% настройка геометрии документа
+\usepackage{multicol}   % настройка шаблона расположения текста
+\usepackage{extsizes}	% расширенная настройка размеров шрифтов
+\usepackage{indentfirst}    % отступ для первого абзаца
+\usepackage{tabularx}	% расширенные таблицы
+\usepackage{makecell}   % настройка клеток таблиц
+\usepackage{caption}    % настройка подписей к вставкам
+\usepackage[table]{xcolor}  % покраска таблиц
+\usepackage{graphicx}	% вставка изображений
+\usepackage{wrapfig, booktabs}	% оформление таблиц
+\usepackage{graphicx, caption, subcaption}
+\usepackage{minted}    % вставка кода
+
+\usepackage{color}	% настройка цвета текста - \textcolor
+\usepackage{soul}	% выделение текста - \hl
+\usepackage[T2A]{fontenc}	% поддержка кириллических символов
+\usepackage[utf8]{inputenc} % поддержка кириллических символов
+\usepackage[english,russian]{babel}	% поддержка кириллических символов
+\usepackage{csquotes, biblatex}   % вывод библиографии
+
+\usepackage{mathcmd}	% математические команды
+\usepackage{amsfonts}	% математические символы 1
+\usepackage{amssymb}	% математические символы 2
+\usepackage{amsmath}	% математические символы 3
+\usepackage{amsthm}	% работа с теоремами
+
+% Настройка окружения теорем 1 (RU)
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{corollary}{Следствие}[theorem]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{example}{Пример}[section]
+\newtheorem*{remark}{Утверждение}
+\addto\captionsrussian{\renewcommand\proofname{Док-во:}}
+
+% Настройка окружения теорем 2 (EN)
+%\newtheorem{theorem}{TH}[section]
+%\newtheorem{corollary}{CO}[theorem]
+%\newtheorem{lemma}[theorem]{LM}
+%\newtheorem{example}{EX}[section]
+%\addto\captionsrussian{\renewcommand\proofname{PF:}}
+
+\renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemiii}{-}
+
+\addbibresource{biblio.bib}
+\graphicspath{ {./images/part1/} }
+
+% Настройка оформления вставок кода
+\setminted{xleftmargin=\parindent, fontsize=\footnotesize, linenos, tabsize=2, breaklines}
+\usemintedstyle{emacs} 
+
+% Настройка отступов
+\geometry{
+    a4paper,
+    % total={200mm,287mm},
+    left=10mm,
+    right=10mm,
+    top=10mm,
+    bottom=20mm
+}
+
+% Заголовок
+\title{\large{Методы моделирования и анализа стохастических систем\\ Лабораторная работа № 1, Часть 2}}
+\author{\large{Костарев Иван, МЕНМ-150201}}
+\date{весенний семестр 2025/2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+
+\section*{Анализ детерминированной задачи}
+
+Определим прогроаммный класс двумерной динамической системы \texttt{DynamicSystem2D} с возможностью нахождения решения методом Рунге-Кутты 4 порядка с суммарной ошибкой $O(h^4)$ на интервале решения, с возможностью построения бифуркационной диаграммы и фазового портрета системы, нахождения равновесий и предельных циклов.
+
+
+
+\section{Нейронная модель ФитцХью-Нагумо (FHN)}
+
+$$
+\begin{cases}
+    \dot{x} = \frac{1}{\delta} (x - \frac{x^3}{3} - y) \\
+    \dot{y} = x + a
+\end{cases}
+$$
+
+1. Найдем равновесия системы.
+
+$$
+\begin{cases}
+    \frac{1}{\delta} (x - \frac{x^3}{3} - y) = 0 \\
+    x + a = 0
+\end{cases} \implies
+\begin{cases}
+    \overline{x} = -a \\
+    \overline{y} = \frac{a^3}{3} - a
+\end{cases}
+$$
+
+2. Исследуем равновесия на устойчивость.
+
+$$
+J(x, y) = \begin{pmatrix}
+\frac{1}{\delta} (1 - x^2) & \frac{1}{\delta} \\
+1 & 0
+\end{pmatrix}
+$$
+
+$$
+|J(x, y) - \lambda E| = 0
+$$
+
+$$
+\lambda_{1,2}(x, y) = \frac{-\delta x^2 + \delta \pm \delta \sqrt{x^4 - 2 x^2 - 4 \delta + 1}}{2 \delta^2}
+$$
+
+Далее с помощью численной процедуры исследуем поведение собственных чисел якобиана в равновесных точках при различных значениях параметра $a$.
+
+\begin{minted}{python}
+FHN = DynamicSystem2D(
+    model_FHN,
+    params=dict(delta=0.1, a=1)
+)
+\end{minted}
+
+3. Построим бифуркационную диаграмму по параметру $a$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{fhn_bifurcation_diagram.png}
+    \caption{График 3}
+    \label{fig:fhn_bifurcation_diagram}
+\end{figure}
+
+
+4. Построим типичные фазовые портреты для различных значений $a$ по бифуркационной диаграмме.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{fhn_phase_portraits.png}
+    \caption{График 4}
+    \label{fig:fhn_phase_portraits}
+\end{figure}
+
+
+\textbf{Итог}. Нейронная модель ФитцХью-Нагумо имеет одну точку бифуркации $a = 1$. При анализе системы была рассмотрена и визуализирована ее единственная равновесная точка. При изменении параметра $a$, равновесная точка меняет тип 3 раза, а также после бифуркации в точке $a = 1$ предельный цикл исчезает.
+
+\section{Климатическая модель Зальцман-Николис (SN)}
+
+$$
+\begin{cases}
+    \dot{x} = y - x \\
+    \dot{y} = -a x + b y - x^2 y
+\end{cases}
+$$
+
+1. Найдем равновесия системы.
+
+\begin{multline*}
+    \begin{cases}
+        y - x = 0 \\
+        -a x + b y - x^2 y = 0
+    \end{cases}
+    \implies
+    \begin{cases}
+        x = y \\
+        x(x^2 + a - b) = 0
+    \end{cases}
+    \implies \\
+    \implies
+    \begin{cases}
+        (\overline{x}_1, \overline{y}_1) = (0, 0) \\
+        (\overline{x}_2, \overline{y}_2) = (\sqrt{b - a}, \sqrt{b - a}) \\
+        (\overline{x}_3, \overline{y}_3) = (-\sqrt{b - a}, -\sqrt{b - a})
+    \end{cases}
+\end{multline*}
+
+2. Исследуем равновесия на устойчивость.
+
+$$
+J(x, y) = \begin{pmatrix}
+    -1 & 1 \\
+    -a - 2xy & b - x^2
+\end{pmatrix}
+$$
+
+$$
+|J(x, y) - \lambda E| = 0
+$$
+
+$$
+\lambda_{1,2}(x, y) = \frac{\pm \sqrt{-4a + b^2 - 2b x^2 + 2b + x^4 - 2x^2 - 8xy + 1} + b - x^2 - 1}{2}
+$$
+
+Далее с помощью численной процедуры исследуем поведение собственных чисел якобиана в равновесных точках при различных значениях параметра $a$.
+
+\begin{minted}{python}
+SN = DynamicSystem2D(
+    model_SN,
+    params=dict(a=1, b=2)
+)
+\end{minted}
+
+3. Построим бифуркационную диаграмму по параметру $a$ для трех равновесий системы:
+
+$$
+\begin{cases}
+    (\overline{x}_1, \overline{y}_1) = (0, 0) \\
+    (\overline{x}_2, \overline{y}_2) = (\sqrt{b - a}, \sqrt{b - a}) \\
+    (\overline{x}_3, \overline{y}_3) = (-\sqrt{b - a}, -\sqrt{b - a})
+\end{cases}
+$$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{sn_bifurcation_diagram.png}
+    \caption{График 5}
+    \label{fig:sn_bifurcation_diagram}
+\end{figure}
+
+
+4. Построим типичные фазовые портреты для различных значений $a$ по бифуркационной диаграмме равновесия $(\overline{x}_1, \overline{y}_1) = (0, 0)$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{sn_phase_portraits_unfull.png}
+    \caption{График 6}
+    \label{fig:sn_phase_portraits_unfull}
+\end{figure}
+
+
+\textbf{Итог}. Климатическая модель Зальцман-Николис имеет одну точку бифуркации $a = 2$ для равновесия $(\overline{x}_1, \overline{y}_1) = (0, 0)$. При анализе системы была рассмотрена и визуализирована одна действительная равновесная точка из трех существующих. При изменении параметра $a$, равновесная точка меняет тип 2 раза, а также меняется количество и форма предельных цклов.
+
+% # TODO:
+% - Рассмотреть все равновесия (в т.ч. устойчивые при a <= 2) для системы SN
+% - Изобразить их и предельные циклы вокруг них на фазовых портретах
+\end{document}

@@ -1,0 +1,181 @@
+\documentclass[17pt]{article}
+
+\usepackage{cmap}	% поиск по документу
+\usepackage{hyperref}	% поддержка гиперссылок
+\usepackage{geometry}	% настройка геометрии документа
+\usepackage{multicol}   % настройка шаблона расположения текста
+\usepackage{extsizes}	% расширенная настройка размеров шрифтов
+\usepackage{indentfirst}    % отступ для первого абзаца
+\usepackage{tabularx}	% расширенные таблицы
+\usepackage{makecell}   % настройка клеток таблиц
+\usepackage{caption}    % настройка подписей к вставкам
+\usepackage[table]{xcolor}  % покраска таблиц
+\usepackage{graphicx}	% вставка изображений
+\usepackage{wrapfig, booktabs}	% оформление таблиц
+\usepackage{graphicx, caption, subcaption}
+\usepackage{minted}    % вставка кода
+
+\usepackage{color}	% настройка цвета текста - \textcolor
+\usepackage{soul}	% выделение текста - \hl
+\usepackage[T2A]{fontenc}	% поддержка кириллических символов
+\usepackage[utf8]{inputenc} % поддержка кириллических символов
+\usepackage[english,russian]{babel}	% поддержка кириллических символов
+\usepackage{csquotes, biblatex}   % вывод библиографии
+
+\usepackage{mathcmd}	% математические команды
+\usepackage{amsfonts}	% математические символы 1
+\usepackage{amssymb}	% математические символы 2
+\usepackage{amsmath}	% математические символы 3
+\usepackage{amsthm}	% работа с теоремами
+
+% Настройка окружения теорем 1 (RU)
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{corollary}{Следствие}[theorem]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{example}{Пример}[section]
+\newtheorem*{remark}{Утверждение}
+\addto\captionsrussian{\renewcommand\proofname{Док-во:}}
+
+% Настройка окружения теорем 2 (EN)
+%\newtheorem{theorem}{TH}[section]
+%\newtheorem{corollary}{CO}[theorem]
+%\newtheorem{lemma}[theorem]{LM}
+%\newtheorem{example}{EX}[section]
+%\addto\captionsrussian{\renewcommand\proofname{PF:}}
+
+\renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemiii}{-}
+
+\addbibresource{biblio.bib}
+\graphicspath{ {./images/part2/} }
+
+% Настройка оформления вставок кода
+\setminted{xleftmargin=\parindent, fontsize=\footnotesize, linenos, tabsize=2, breaklines}
+\usemintedstyle{emacs} 
+
+% Настройка отступов
+\geometry{
+    a4paper,
+    % total={200mm,287mm},
+    left=10mm,
+    right=10mm,
+    top=10mm,
+    bottom=20mm
+}
+
+% Заголовок
+\title{\large{Методы моделирования и анализа стохастических систем\\ Лабораторная работа № 1, Часть 2}}
+\author{\large{Костарев Иван, МЕНМ-150201}}
+\date{весенний семестр 2025/2026}
+
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Метод обратной функции}
+
+Задана плотность
+
+$$
+\begin{cases}
+    f(x) = \frac{e^x}{e - 1}, & x \in (0, 1) \\
+    0, & \text{иначе}
+\end{cases}
+$$
+
+Из плотности $f(x)$ найдем распределение $F(x)$:
+
+$$
+F(x) = \int_{-\infty}^{x} f(t)dt = \int_{-\infty}^{0} 0 dt + \int_{0}^{x} \frac{e^t}{e - 1}dt = \frac{1}{e - 1}(e^x - e^{0}) = \frac{e^x - 1}{e - 1}
+$$
+при $x \in (0, 1)$.
+
+Найдем обратную функцию $G(y) = F^{-1}(y)$:
+
+$$
+G(y) = \ln{1 + y(e - 1)}
+$$
+при $y \in (0, 1)$.
+
+\textbf{(а)} Смоделируем $N = 10^8$ значений величины из распределения $F(x)$. Для этого используется функция $G(y)$, примененная к равномерно распределенной выборке.
+
+\begin{minted}[fontsize=\footnotesize]{python}
+def G(y):
+    return np.log(1 + y * (np.e - 1))
+
+sample_size = 10 ** 8
+sample = rng.uniform(0., 1., size=sample_size)
+sample = G(sample)
+\end{minted}
+
+На Рис. \ref{fig:hist_inv} представлена гистограмма смоделированной выборки.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.6\textwidth]{hist_inv.png}
+\caption{Гистограмма выборки $X \sim F(x)$ на интервале $[0, 1]$}
+\label{fig:hist_inv}
+\end{figure}
+
+\textbf{(б)} Найдем точные значения мат ожидания $M_x$ и дисперсии $D_x$.
+
+$$
+M_x = \int_{0}^{1} x f(x)dx = \int_{0}^{1} x \frac{e^x}{e - 1}dx = \frac{1}{e - 1}
+$$
+
+$$
+D_x = \int_{0}^{1} x^2 f(x)dx - M_x^2 = \int_{0}^{1} x^2 \frac{e^x}{e - 1}dx - M_x^2 = \frac{e - 2}{e - 1} - (\frac{1}{e - 1})^2 = \frac{e^2 - 3e + 1}{(e - 1)^2}.
+$$
+
+\textbf{(в)} Вычислим оценки мат ожидания и дисперсии для различных размеров выборки $N$ и сравним их с точными значениями (Рис. \ref{fig:mean_inv}, \ref{fig:var_inv}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{mean_comp_inv.png}
+    \caption{Сравнение выборочного среднего с точным значением}
+    \label{fig:mean_inv}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{var_comp_inv.png}
+    \caption{Сравнение выборочной дисперсии с точным значением}
+    \label{fig:var_inv}
+\end{figure}
+
+\textbf{Итог}: при размере выборки $N \geq 10^5$ оценки мат ожидания и дисперсии слабо отличаются от точных значений.
+
+\section{Метод Монте-Карло}
+
+Задана функция $f(x) = \sqrt{x} + 1$, $x \in (1, 4)$.
+
+Найдем точное значение интеграла:
+
+$$
+I = \int_{1}^{4} f(x)dx = \int_{1}^{4} (\sqrt{x} + 1)dx = \frac{23}{3} \approx 7.67
+$$
+
+Найдем приближенное значение интеграла методом Монте-Карло и сравним его с точным (Рис. \ref{fig:mc_comp}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{mc_comp.png}
+    \caption{Сравнение оценки интеграла с точным значением}
+    \label{fig:mc_comp}
+\end{figure}
+
+Визуализируем метод Монте-Карло для функции $f(x)$ на примере $N = 1000$ случайных точек (Рис. \ref{fig:mc_vis}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{mc_vis.png}
+    \caption{Визуализация метода Монте-Карло для $N=1000$}
+    \label{fig:mc_vis}
+\end{figure}
+
+\textbf{Итог}: при количестве точек $N \geq 10^7$ оценка интеграла слабо отличается от точного значения.
+
+\end{document}

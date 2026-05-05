@@ -1,0 +1,167 @@
+\documentclass[17pt]{article}
+
+\usepackage{cmap}	% поиск по документу
+\usepackage{hyperref}	% поддержка гиперссылок
+\usepackage{geometry}	% настройка геометрии документа
+\usepackage{multicol}   % настройка шаблона расположения текста
+\usepackage{extsizes}	% расширенная настройка размеров шрифтов
+\usepackage{indentfirst}    % отступ для первого абзаца
+\usepackage{tabularx}	% расширенные таблицы
+\usepackage{makecell}   % настройка клеток таблиц
+\usepackage{caption}    % настройка подписей к вставкам
+\usepackage[table]{xcolor}  % покраска таблиц
+\usepackage{graphicx}	% вставка изображений
+\usepackage{wrapfig, booktabs}	% оформление таблиц
+\usepackage{graphicx, caption, subcaption}
+\usepackage{minted}    % вставка кода
+
+\usepackage{color}	% настройка цвета текста - \textcolor
+\usepackage{soul}	% выделение текста - \hl
+\usepackage[T2A]{fontenc}	% поддержка кириллических символов
+\usepackage[utf8]{inputenc} % поддержка кириллических символов
+\usepackage[english,russian]{babel}	% поддержка кириллических символов
+\usepackage{csquotes, biblatex}   % вывод библиографии
+
+\usepackage{mathcmd}	% математические команды
+\usepackage{amsfonts}	% математические символы 1
+\usepackage{amssymb}	% математические символы 2
+\usepackage{amsmath}	% математические символы 3
+\usepackage{amsthm}	% работа с теоремами
+
+% Настройка окружения теорем 1 (RU)
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{corollary}{Следствие}[theorem]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{example}{Пример}[section]
+\newtheorem*{remark}{Утверждение}
+\addto\captionsrussian{\renewcommand\proofname{Док-во:}}
+
+% Настройка окружения теорем 2 (EN)
+%\newtheorem{theorem}{TH}[section]
+%\newtheorem{corollary}{CO}[theorem]
+%\newtheorem{lemma}[theorem]{LM}
+%\newtheorem{example}{EX}[section]
+%\addto\captionsrussian{\renewcommand\proofname{PF:}}
+
+\renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemiii}{-}
+
+\addbibresource{biblio.bib}
+\graphicspath{ {./images/part1/} }
+
+% Настройка оформления вставок кода
+\setminted{xleftmargin=\parindent, fontsize=\footnotesize, linenos, tabsize=2, breaklines}
+\usemintedstyle{emacs} 
+
+% Настройка отступов
+\geometry{
+    a4paper,
+    % total={200mm,287mm},
+    left=10mm,
+    right=10mm,
+    top=10mm,
+    bottom=20mm
+}
+
+% Заголовок
+\title{\large{Методы моделирования и анализа стохастических систем\\ Лабораторная работа № 1, Часть 1}}
+\author{\large{Костарев Иван, МЕНМ-150201}}
+\date{весенний семестр 2025/2026}
+
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Инициализация ГПСЧ для X $\sim$ U[0, 1]}
+
+Инициализируем генератор \texttt{rng}, используя конструктор \texttt{default\_rng} из библиотеки \texttt{numpy}:
+\begin{minted}{python}
+rng = np.random.default_rng()
+\end{minted}
+
+\section{Нахождение зависимости между мат ожиданием, дисперсией и размером выборки}
+
+Для исследования сходимости выборочных характеристик генерируются массивы различной длины и вычисляются их математические ожидания и дисперсии.
+
+Построим график (Рис. \ref{fig:mean_vs_N}) зависимости математического ожидания \texttt{mean} от размера выборки $N$.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{mean_vs_N.png}
+    \caption{Зависимость выборочного математического ожидания от размера выборки $N$.}
+    \label{fig:mean_vs_N}
+\end{figure}
+
+Построим график (Рис. \ref{fig:var_vs_N}) зависимости дисперсии \texttt{var} от размера выборки $N$.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{var_vs_N.png}
+    \caption{Зависимость выборочной дисперсии от размера выборки $N$.}
+    \label{fig:var_vs_N}
+\end{figure}
+
+\section{Построение гистограммы и вычисление погрешности (расхождение сгенерированных чисел с теоретическим значением)}
+
+Генерируется выборка большого объема ($N = 10^8$) и строится ее нормированная гистограмма:
+\begin{minted}{python}
+sample_size = 10 ** 8
+sample = rng.uniform(0., 1., size=sample_size)
+num_bins = 32
+sample_hist, bin_edges = np.histogram(sample, bins=num_bins, density=True)
+\end{minted}
+
+Построим приближенную гистограмму (Рис. \ref{fig:histogram}) равномерного распределения на основе сгенерированных данных (\texttt{sample}).
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{histogram.png}
+    \caption{Приближенная гистограмма равномерного распределения $U[0, 1]$.}
+    \label{fig:histogram}
+\end{figure}
+
+Определим функцию для вычисления погрешности приближения гистограммы к теоретической плотности ($p_{\text{true}} = 1$):
+\begin{minted}{python}
+def distribution_error(p: np.ndarray, p_true: float = 1.):
+    return np.sum((p - p_true) ** 2)
+\end{minted}
+
+Построим график (Рис. \ref{fig:error_vs_N}) зависимости погрешности \texttt{distribution\_error} от размера выборки $N$.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{error_vs_N.png}
+    \caption{Зависимость погрешности распределения от размера выборки $N$.}
+    \label{fig:error_vs_N}
+\end{figure}
+
+\section{Вычисление коэффициента корреляции между двумя выборками из одного распределения, но построенными разными способами}
+
+Для оценки линейной зависимости реализуем вычисление коэффициента корреляции Пирсона:
+\begin{minted}{python}
+def pearson_r(x: np.ndarray, y: np.ndarray):
+    return np.sum((x - x.mean()) * (y - y.mean())) / np.sqrt(np.sum((x - x.mean()) ** 2) * np.sum((y - y.mean()) ** 2))
+\end{minted}
+
+\vspace{0.5em}
+\textbf{(а)} генерация двух независимых выборок.
+
+Построим график (Рис. \ref{fig:corr_a}) зависимости коэффициента корреляции \texttt{pearson\_r} от размера выборки $N$ (вариант а).
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{corr_a.png}
+    \caption{Зависимость коэффициента корреляции от размера выборки $N$ (вариант а).}
+    \label{fig:corr_a}
+\end{figure}
+
+\vspace{0.5em}
+\textbf{(б)} генерация единой последовательности и разделение на четные/нечетные элементы.
+
+Построим график (Рис. \ref{fig:corr_b}) зависимости коэффициента корреляции \texttt{pearson\_r} от размера выборки $N$ (вариант б).
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{corr_b.png}
+    \caption{Зависимость коэффициента корреляции от размера выборки $N$ (вариант б).}
+    \label{fig:corr_b}
+\end{figure}
+
+\end{document}

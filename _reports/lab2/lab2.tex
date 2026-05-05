@@ -1,0 +1,186 @@
+\documentclass[17pt]{article}
+
+\usepackage{cmap}	% поиск по документу
+\usepackage{hyperref}	% поддержка гиперссылок
+\usepackage{geometry}	% настройка геометрии документа
+\usepackage{multicol}   % настройка шаблона расположения текста
+\usepackage{extsizes}	% расширенная настройка размеров шрифтов
+\usepackage{indentfirst}    % отступ для первого абзаца
+\usepackage{tabularx}	% расширенные таблицы
+\usepackage{makecell}   % настройка клеток таблиц
+\usepackage{caption}    % настройка подписей к вставкам
+\usepackage[table]{xcolor}  % покраска таблиц
+\usepackage{graphicx}	% вставка изображений
+\usepackage{wrapfig, booktabs}	% оформление таблиц
+\usepackage{graphicx, caption, subcaption}
+\usepackage{minted}    % вставка кода
+
+\usepackage{color}	% настройка цвета текста - \textcolor
+\usepackage{soul}	% выделение текста - \hl
+\usepackage[T2A]{fontenc}	% поддержка кириллических символов
+\usepackage[utf8]{inputenc} % поддержка кириллических символов
+\usepackage[english,russian]{babel}	% поддержка кириллических символов
+\usepackage{csquotes, biblatex}   % вывод библиографии
+
+\usepackage{mathcmd}	% математические команды
+\usepackage{amsfonts}	% математические символы 1
+\usepackage{amssymb}	% математические символы 2
+\usepackage{amsmath}	% математические символы 3
+\usepackage{amsthm}	% работа с теоремами
+
+% Настройка окружения теорем 1 (RU)
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{corollary}{Следствие}[theorem]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{example}{Пример}[section]
+\newtheorem*{remark}{Утверждение}
+\addto\captionsrussian{\renewcommand\proofname{Док-во:}}
+
+% Настройка окружения теорем 2 (EN)
+%\newtheorem{theorem}{TH}[section]
+%\newtheorem{corollary}{CO}[theorem]
+%\newtheorem{lemma}[theorem]{LM}
+%\newtheorem{example}{EX}[section]
+%\addto\captionsrussian{\renewcommand\proofname{PF:}}
+
+\renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemiii}{-}
+
+\addbibresource{biblio.bib}
+\graphicspath{ {./images/} }
+
+% Настройка оформления вставок кода
+\setminted{xleftmargin=\parindent, fontsize=\footnotesize, linenos, tabsize=2, breaklines}
+\usemintedstyle{emacs} 
+
+% Настройка отступов
+\geometry{
+    a4paper,
+    % total={200mm,287mm},
+    left=10mm,
+    right=10mm,
+    top=10mm,
+    bottom=20mm
+}
+
+% Заголовок
+\title{\large{Методы моделирования и анализа стохастических систем\\ Лабораторная работа № 2}}
+\author{\large{Костарев Иван, МЕНМ-150201}}
+\date{весенний семестр 2025/2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+
+
+\section{Метод 12}
+
+Программная реализация метода 12:
+
+\begin{minted}{python}
+def random_normal_method_of_12(size: int = 1):
+    n = 12
+    uniform = rng.uniform(0., 1., size=(n, size)) - 0.5
+    return np.sum(uniform, axis=0) * np.sqrt(12) / np.sqrt(n)    
+\end{minted}
+
+Смоделируем методом 12 нормально распределенную выборку $X \sim \mathcal{N}(0, 1)$ размера $N = 10^7$, и построим гистограмму плотности распределения (Рис. \ref{fig:method12_hist}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{method12_hist.png}
+    \caption{Эмпирическая плотность распределения величины, полученной методом 12.}
+    \label{fig:method12_hist}
+\end{figure}
+
+Программная реализация функции ошибки:
+
+\begin{minted}{python}
+def distribution_error(
+    p: np.ndarray,
+    p_true: np.ndarray
+):
+    return np.sum((p - p_true) ** 2)  
+\end{minted}
+
+Построим график зависимости погрешности \texttt{distribution\_error} от размера выборки $N$ (Рис. \ref{fig:method12_error}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{method12_error.png}
+    \caption{Зависимость погрешности гистограммы от размера выборки $N$.}
+    \label{fig:method12_error}
+\end{figure}
+
+Вычислим оценки мат ожидания и дисперсии для различных размеров выборки $N$, и сравним их с точными значениями для распределения $\mathcal{N}(0, 1)$ (Рис. \ref{fig:method12_means_plot}, \ref{fig:method12_vars_plot}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{method12_means_plot.png}
+    \caption{Сравнение выборочного среднего с точным значением мат ожидания.}
+    \label{fig:method12_means_plot}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{method12_vars_plot.png}
+    \caption{Сравнение выборочной дисперсии с точным значением дисперсии.}
+    \label{fig:method12_vars_plot}
+\end{figure}
+
+\textbf{Итог}: метод 12 для генерации нормально распределенной выборки требует довольно много памяти в текущей реализации на Python, поэтому эмпирические параметры распределения были вычислены для выборок размеров $N \leq 10^7$. Даже на таких размерах выборок графики демонстрируют, что с увеличением размера выборки мат ожидание и дисперсия стремятся к точным значениям. Ошибка плотности по сравнению с истинным нормальным распределением стремится к 0.
+
+
+
+\section{Преобразование Бокса -- Мюллера}
+
+Программная реализация преобразования Бокса -- Мюллера:
+
+\begin{minted}{python}
+def random_normal_box_muller(size: int = 1):
+    a, b = rng.uniform(0., 1., size=(2, size))
+    xi_1 = np.sqrt(-2 * np.log(a)) * np.cos(2 * np.pi * b)
+    xi_2 = np.sqrt(-2 * np.log(a)) * np.sin(2 * np.pi * b)
+    return xi_1
+\end{minted}
+
+Смоделируем с помощью преобразования Бокса -- Мюллера нормально распределенную выборку $X \sim \mathcal{N}(0, 1)$ размера $N = 10^7$, и построим гистограмму плотности распределения (Рис. \ref{fig:box_muller_hist}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{box_muller_hist.png}
+    \caption{Эмпирическая плотность распределения величины, полученной преобразованием Бокса -- Мюллера.}
+    \label{fig:box_muller_hist}
+\end{figure}
+
+Построим график зависимости погрешности \texttt{distribution\_error} от размера выборки $N$ (Рис. \ref{fig:box_muller_error}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{box_muller_error.png}
+    \caption{Зависимость погрешности гистограммы от размера выборки $N$.}
+    \label{fig:box_muller_error}
+\end{figure}
+
+Вычислим оценки мат ожидания и дисперсии для различных размеров выборки $N$, и сравним их с точными значениями для распределения $\mathcal{N}(0, 1)$.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{box_muller_means_plot.png}
+    \caption{Сравнение выборочного среднего с точным значением мат ожидания.}
+    \label{fig:box_muller_means_plot}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{box_muller_vars_plot.png}
+    \caption{Сравнение выборочной дисперсии с точным значением дисперсии.}
+    \label{fig:box_muller_vars_plot}
+\end{figure}
+
+\textbf{Итог}: преобразование Бокса -- Мюллера для генерации нормально распределенной выборки требует довольно много памяти в текущей реализации на Python, поэтому эмпирические параметры распределения были вычислены для выборок размеров $N \leq 10^7$. Даже на таких размерах выборок графики демонстрируют, что с увеличением размера выборки мат ожидание и дисперсия стремятся к точным значениям. Ошибка плотности по сравнению с истинным нормальным распределением стремится к 0.
+
+\end{document}
