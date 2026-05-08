@@ -1,72 +1,7 @@
 import numpy as np
-import scipy as sp
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 
-
-def find_jacobian(
-    func: callable,
-    t: float,
-    state: np.ndarray,
-    params: dict,
-    eps: float = 1e-6,
-) -> np.ndarray:
-    n = len(state)
-    jacobian = np.zeros((n, n))
-
-    for i in range(n):
-        perturb = np.zeros(n)
-        perturb[i] = eps
-        
-        f1 = func(t, state + perturb, **params)
-        f2 = func(t, state - perturb, **params)
-        jacobian[:, i] = (f1 - f2) / (2 * eps)
-    
-    return jacobian
-
-def find_equilibrium(
-    func: callable,
-    guess: np.ndarray,
-    params: dict,
-) -> np.ndarray:    
-    def root_fn(state):
-        return func(0, state, **params)
-    
-    solution, info, ier, _ = sp.optimize.fsolve(root_fn, guess, full_output=True)
-    
-    if ier == 1:
-        return solution
-    return None
-
-
-def classify_equilibrium(
-    eigenvalues: np.ndarray,
-    eps: float = 1e-6
-) -> str:
-    real = np.real(eigenvalues)
-    imag = np.imag(eigenvalues)
-
-    if np.any(real > eps) and np.any(real < -eps):
-        return 'saddle'
-
-    if np.all(np.abs(real) < eps):
-        if np.any(np.abs(imag) > eps):
-            return 'center'
-        else:
-            return 'degenerate'
-
-    if np.any(np.abs(imag) > eps):
-        if np.all(real < 0):
-            return 'stable focus'
-        elif np.all(real > 0):
-            return 'unstable focus'
-
-    if np.all(real < 0):
-        return 'stable node'
-    elif np.all(real > 0):
-        return 'unstable node'
-
-    return 'unknown'
+from stochastique.core.numerical import find_jacobian, find_equilibrium, classify_equilibrium
 
 
 class DynamicSystem2D:
@@ -149,11 +84,27 @@ class DynamicSystem2D:
         for val in param_values:
             self.params[param_name] = val
 
-            equilibrium = find_equilibrium(self.model_func, state_init, self.params)
+            guess = self._resolve_state_init(
+                state_init=state_init,
+                val=val,
+                prev_equilibrium=equilibria[-1] if len(equilibria) > 0 else None
+            )
+
+            equilibrium = find_equilibrium(
+                func=self.model_func,
+                guess=guess,
+                params=self.params
+            )
+
             if equilibrium is None:
                 continue
 
-            jacobian = find_jacobian(self.model_func, 0, equilibrium, self.params)
+            jacobian = find_jacobian(
+                func=self.model_func,
+                t=0,
+                state=equilibrium,
+                params=self.params
+            )
             eigenvalues = np.linalg.eigvals(jacobian)
 
             # equillibrium classification
@@ -194,7 +145,7 @@ class DynamicSystem2D:
 
         for t in set(types):
             mask = np.array([tt == t for tt in types])
-            ax.scatter( param_used[mask], x_eq[mask], label=t, color=type_to_color.get(t, 'gray'), s=20)
+            ax.scatter(param_used[mask], x_eq[mask], label=t, color=type_to_color.get(t, 'gray'), s=20)
 
         ax.set_xlabel(param_name)
         ax.set_ylabel('x')
@@ -334,3 +285,27 @@ class DynamicSystem2D:
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.grid(True)
+    
+    def _resolve_state_init(
+        self,
+        state_init,
+        val: float,
+        prev_equilibrium: np.ndarray | None,
+    ) -> np.ndarray:
+        """
+        Resolve initial guess for equilibrium search.
+
+        Priority:
+        1. continuation (previous equilibrium)
+        2. callable(`state_init(val)`)
+        3. constant `np.ndarray` point (`state_init`)
+        """
+
+        # continuation
+        if prev_equilibrium is not None:
+            return prev_equilibrium
+
+        if callable(state_init):
+            return np.asarray(state_init(val))
+
+        return np.asarray(state_init)

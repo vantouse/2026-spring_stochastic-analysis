@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stochastique"
+version = "0.0.1"
+description = "Stochastic system modeling and analysis tool."
+authors = [
+    {name = "Ivan", email = "ivcos2003@gmail.com"}
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "tqdm"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Make `main.py` an executable CLI command.
+# [project.scripts]
+# my-command = "mypackage.main:run"
