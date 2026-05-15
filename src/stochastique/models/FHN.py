@@ -27,7 +27,7 @@ def equilibria_FHN(
     a: float = 1,
 ):
     """
-    Return all the real equilibrium values of the FHN model at given parameter values.
+    Return all the real equilibrium values of the FitzHugh-Nagumo model at given parameter values.
     """
     return [
         np.array([

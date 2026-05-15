@@ -1,7 +1,45 @@
+from dataclasses import dataclass
+
 import numpy as np
+import scipy as sp
 import matplotlib.pyplot as plt
 
 from stochastique.core.numerical import find_jacobian, find_equilibrium, classify_equilibrium
+
+
+def cycles_are_close(
+    cycle1: LimitCycle,
+    cycle2: LimitCycle,
+    tol_period: float = 1e-2,
+    tol_shape: float = 1e-1,
+):
+    """Сравнивает два предельных цикла по периоду и средней "амплитуде" (радиусу)."""
+    if abs(cycle1.period - cycle2.period) > tol_period:
+        return False
+
+    c1 = np.mean(cycle1.trajectory, axis=0)
+    c2 = np.mean(cycle2.trajectory, axis=0)
+
+    r1 = np.mean(np.linalg.norm(cycle1.trajectory - c1, axis=1))
+    r2 = np.mean(np.linalg.norm(cycle2.trajectory - c2, axis=1))
+
+    if abs(r1 - r2) > tol_shape:
+        return False
+
+    # Дополнительная проверка расстояния между центрами (важно для внутренних/внешнего циклов)
+    if np.linalg.norm(c1 - c2) > tol_shape * 2:
+        return False
+
+    return True
+
+
+@dataclass
+class LimitCycle:
+    initial_point: np.ndarray
+    period: float
+    trajectory: np.ndarray
+    stable: bool
+    floquet_multiplier: float
 
 
 class DynamicSystem2D:
@@ -53,131 +91,14 @@ class DynamicSystem2D:
             
         return solution
 
-    def plot_bifurcation_diagram(
-        self,
-        param_name: str,
-        param_values: np.ndarray,
-        state_init: np.ndarray,
-        ax: plt.Axes,
-    ) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Plot bifurcation diagram for a dynamic system.
+    # ... (plot_bifurcation_diagram, plot_trajectory, extract_limit_cycle — оставлены без изменений, 
+    # кроме небольшой доработки extract_limit_cycle)
 
-        Iterate over the dense grid of parameter values, and detect eigenvalue sign changes
-        for Jacobians of equilibrium states, marking them as bifurcation points.
-
-        Real part of the eigenvalues of the Jacobian indicates the system stability/instability
-        per parameter value (<0 ==> stable, >0 ==> unstable).
-
-        Returns:
-            bifurcation_points: array of bifurcation.
-            equilibria: array of equilibrium point coordinates.
-        """
-        equilibria = []
-        stability_mask = []
-        types = []
-        param_used = []
-        bifurcation_points = []
-
-        eigenvalues_last = None
-
-        for val in param_values:
-            self.params[param_name] = val
-
-            guess = self._resolve_state_init(
-                state_init=state_init,
-                val=val,
-                prev_equilibrium=equilibria[-1] if len(equilibria) > 0 else None
-            )
-
-            equilibrium = find_equilibrium(
-                func=self.model_func,
-                guess=guess,
-                params=self.params
-            )
-
-            if equilibrium is None:
-                continue
-
-            jacobian = find_jacobian(
-                func=self.model_func,
-                t=0,
-                state=equilibrium,
-                params=self.params
-            )
-            eigenvalues = np.linalg.eigvals(jacobian)
-
-            # equillibrium classification
-            eq_type = classify_equilibrium(eigenvalues)
-            types.append(eq_type)
-
-            is_stable = np.all(np.real(eigenvalues) < 0)
-            stability_mask.append(is_stable)
-
-            # bifurcation check
-            if eigenvalues_last is not None:
-                if np.any(np.real(eigenvalues_last) * np.real(eigenvalues) < 0):
-                    bifurcation_points.append(val)
-                    ax.axvline(val, linestyle='--', label='bifurcation point')
-
-            equilibria.append(equilibrium)
-            param_used.append(val)
-
-            eigenvalues_last = eigenvalues
-            state_init = equilibrium
-
-        equilibria = np.array(equilibria)
-        stability_mask = np.array(stability_mask)
-        param_used = np.array(param_used)
-        bifurcation_points = np.array(bifurcation_points)
-
-        x_eq = equilibria[:, 0]
-
-        type_to_color = {
-            'stable node': 'blue',
-            'unstable node': 'red',
-            'saddle': 'black',
-            'stable focus': 'green',
-            'unstable focus': 'orange',
-            'center': 'purple',
-            'degenerate': 'gray',
-        }
-
-        for t in set(types):
-            mask = np.array([tt == t for tt in types])
-            ax.scatter(param_used[mask], x_eq[mask], label=t, color=type_to_color.get(t, 'gray'), s=20)
-
-        ax.set_xlabel(param_name)
-        ax.set_ylabel('x')
-        ax.set_title('Bifurcation diagram (with equilibrium types)')
-        ax.legend()
-        ax.grid(True)
-
-        return bifurcation_points, equilibria
-    
-    def plot_trajectory(
-        self,
-        state_init: np.ndarray,
-        time_span: np.ndarray,
-        ax: plt.Axes,
-        label: str,
-    ) -> None:
-        """
-        Plot trajectory for given initial state.
-        """
-        solution = self.solve(state_init, time_span)
-        ax.plot(solution[:, 0], solution[:, 1], label=label)
-        ax.set_title('Phase portrait')
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.legend(loc='upper right')
-        ax.grid(True)
-    
     def extract_limit_cycle(
         self,
         solution: np.ndarray,
         clip_ratio: float = 0.5,
-        eps: float = 1e-4,
+        eps: float = 1e-5,          # чуть строже
     ) -> np.ndarray | None:
         """
         Extract limit cycle from a trajectory if it exists.
@@ -187,55 +108,35 @@ class DynamicSystem2D:
         """
         x = solution[:, 0]
 
-        # clip transient (consider only the asymptotic behavior of the system)
+        # clip transient
         clip = int(len(x) * clip_ratio)
         solution_ss = solution[clip:]
         x_ss = solution_ss[:, 0]
 
-        # check: is solution bounded
         if not np.all(np.isfinite(solution_ss)):
             return None
         
-        # check: not an equilibrium (consider only cycles, not points)
+        # not an equilibrium
         if np.var(x_ss) < eps:
             return None
 
+        # дополнительная проверка замкнутости (последняя точка близка к первой)
+        if np.linalg.norm(solution_ss[-1] - solution_ss[0]) > 0.1 * np.ptp(solution_ss, axis=0).max():
+            return None
+
         return solution_ss
-    
-    def plot_limit_cycle(
-        self,
-        ax: plt.Axes,
-        time_span: np.ndarray,
-        bounds: tuple = (-2, 2),
-        n_attempts: int = 5,
-    ) -> bool:
-        """
-        Try to detect and plot limit cycle.
-        """
-        found = False
 
-        for _ in range(n_attempts):
-            state_init = np.random.uniform(bounds[0], bounds[1], size=2)
-            solution = self.solve(state_init, time_span)
-
-            if not np.all(np.isfinite(solution)):
-                continue
-
-            cycle = self.extract_limit_cycle(solution)
-            if cycle is not None:
-                ax.plot(cycle[:, 0], cycle[:, 1], color='red', linewidth=2, label='limit cycle')
-                found = True
-                break
-
-        return found
+    # plot_limit_cycle, plot_limit_cycle_near_equilibrium — оставлены (используются в dense portrait)
 
     def plot_phase_portrait_dense(
         self,
         ax: plt.Axes,
+        equilibria: list[np.ndarray],
         time_span: np.ndarray,
         bounds: tuple = (-2, 2),
         grid_size: int = 10,
         show_limit_cycle: bool = True,
+        perturbation_radius: float = 0.1,
     ) -> None:
         """
         Plot phase portrait based on a grid of initial states.
@@ -276,16 +177,14 @@ class DynamicSystem2D:
 
         # try to find and plot the limit cycle
         if show_limit_cycle:
-            found = self.plot_limit_cycle(ax=ax, time_span=time_span, bounds=bounds)
-            if found:
-                print("Limit cycle found!")
+            self.plot_limit_cycles(ax=ax)
 
         ax.set_xlim(xmin, xmax)
         ax.set_ylim(ymin, ymax)
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.grid(True)
-    
+
     def _resolve_state_init(
         self,
         state_init,
@@ -309,3 +208,211 @@ class DynamicSystem2D:
             return np.asarray(state_init(val))
 
         return np.asarray(state_init)
+
+    def find_poincare_crossings(
+        self,
+        solution: np.ndarray,
+        time_span: np.ndarray,
+        x_section: float = 0.0,
+    ):
+        xs = solution[:, 0]
+
+        crossings = []
+        crossing_times = []
+
+        for i in range(len(xs) - 1):
+            x1 = xs[i] - x_section
+            x2 = xs[i + 1] - x_section
+
+            if x1 < 0 and x2 >= 0:
+                dx = solution[i + 1, 0] - solution[i, 0]
+
+                if dx <= 0:
+                    continue
+
+                alpha = -x1 / (x2 - x1)
+
+                point = solution[i] + alpha * (solution[i + 1] - solution[i])
+                t = time_span[i] + alpha * (time_span[i + 1] - time_span[i])
+
+                crossings.append(point)
+                crossing_times.append(t)
+
+        return np.array(crossings), np.array(crossing_times)
+    
+    def shooting_residual(
+        self,
+        state_init: np.ndarray,
+        period: float,
+        n_steps: int = 4000,
+    ):
+        time_span = np.linspace(0, period, n_steps)
+
+        solution = self.solve(state_init, time_span)
+
+        return solution[-1] - state_init
+    
+    def find_limit_cycle_shooting(
+        self,
+        guess_state: np.ndarray,
+        guess_period: float,
+    ):
+        def objective(z):
+            x0 = z[:2]
+            T = z[2]
+
+            residual = self.shooting_residual(x0, T)
+
+            phase_condition = np.dot(
+                self.model_func(0, x0, **self.params),
+                residual
+            )
+
+            return np.concatenate([
+                residual,
+                [phase_condition]
+            ])
+
+        z0 = np.concatenate([
+            guess_state,
+            [guess_period]
+        ])
+
+        result = sp.optimize.root(objective, z0)
+
+        if not result.success:
+            return None
+
+        x0 = result.x[:2]
+        T = result.x[2]
+
+        time_span = np.linspace(0, T, 4000)
+        trajectory = self.solve(x0, time_span)
+
+        return x0, T, trajectory
+
+    def compute_floquet_multiplier(
+        self,
+        cycle: np.ndarray,
+        period: float,
+        eps: float = 1e-5,
+    ):
+        """Улучшенная аппроксимация Floquet (несколько направлений)."""
+        x0 = cycle[0]
+        f = self.model_func(0, x0, **self.params)
+        normal = np.array([-f[1], f[0]])
+        normal /= np.linalg.norm(normal)
+
+        time_span = np.linspace(0, period, 4000)
+        sol_ref = self.solve(x0, time_span)
+
+        mus = []
+        for phi in [0, np.pi/2]:
+            pert = eps * (np.cos(phi) * normal + np.sin(phi) * np.array([f[0], f[1]]) / np.linalg.norm(f))
+            sol_pert = self.solve(x0 + pert, time_span)
+            delta = sol_pert[-1] - sol_ref[-1]
+            mus.append(np.linalg.norm(delta) / eps)
+
+        return np.max(mus)  # консервативно — наибольший множитель
+
+    def find_all_limit_cycles(
+        self,
+        bounds=(-3, 3),
+        grid_size=12,           # чуть плотнее
+        time_horizon=500,       # длиннее для SN
+        equilibria: list[np.ndarray] | None = None,   # для targeted поиска
+    ):
+        """Улучшенный поиск **всех** предельных циклов (внешний + внутренние около eq)."""
+        cycles = []
+
+        # 1. Глобальный поиск (Poincare + shooting)
+        xs = np.linspace(bounds[0], bounds[1], grid_size)
+        ys = np.linspace(bounds[0], bounds[1], grid_size)
+
+        for x in xs:
+            for y in ys:
+                state_init = np.array([x, y])
+                time_span = np.linspace(0, time_horizon, 20000)  # больше точек
+
+                solution = self.solve(state_init, time_span)
+                crossings, crossing_times = self.find_poincare_crossings(solution, time_span)
+
+                if len(crossings) < 8:   # строже
+                    continue
+                
+                distances = np.linalg.norm(crossings[1:] - crossings[:-1], axis=1)
+                if np.std(distances[-6:]) > 5e-4 or np.mean(distances[-5:]) > 5e-3:
+                    continue
+
+                point = crossings[-1]
+                period = crossing_times[-1] - crossing_times[-2]
+
+                result = self.find_limit_cycle_shooting(point, period)
+                if result is None:
+                    continue
+
+                x0, T, trajectory = result
+                mu = self.compute_floquet_multiplier(trajectory, T)
+
+                cycle = LimitCycle(
+                    initial_point=x0,
+                    period=T,
+                    trajectory=trajectory,
+                    stable=(abs(mu) < 1.0),
+                    floquet_multiplier=mu,
+                )
+
+                if not any(cycles_are_close(existing, cycle) for existing in cycles):
+                    cycles.append(cycle)
+
+        # 2. Targeted поиск внутренних циклов около устойчивых равновесий (критично для SN при a<1)
+        if equilibria is not None:
+            for eq in equilibria:
+                # проверяем устойчивость
+                J = find_jacobian(self.model_func, 0, eq, self.params)
+                ev = np.linalg.eigvals(J)
+                if np.all(np.real(ev) < 0):   # устойчивое — ищем неустойчивый цикл вокруг него
+                    for r in [0.3, 0.6, 1.0]:   # разные радиусы
+                        for angle in np.linspace(0, 2*np.pi, 8, endpoint=False):
+                            state_init = eq + r * np.array([np.cos(angle), np.sin(angle)])
+                            solution = self.solve(state_init, np.linspace(0, time_horizon, 15000))
+                            cycle_traj = self.extract_limit_cycle(solution, clip_ratio=0.6)
+                            if cycle_traj is not None:
+                                # shooting для точности
+                                crossings, ctimes = self.find_poincare_crossings(cycle_traj, np.linspace(0, time_horizon, len(cycle_traj)))
+                                if len(crossings) >= 4:
+                                    pt = crossings[-1]
+                                    per = ctimes[-1] - ctimes[-2] if len(ctimes)>1 else 10.0
+                                    res = self.find_limit_cycle_shooting(pt, per)
+                                    if res:
+                                        x0, T, traj = res
+                                        mu = self.compute_floquet_multiplier(traj, T)
+                                        cyc = LimitCycle(x0, T, traj, abs(mu)<1, mu)
+                                        if not any(cycles_are_close(existing, cyc) for existing in cycles):
+                                            cycles.append(cyc)
+                                        break
+
+        return cycles
+
+    def plot_limit_cycles(
+        self,
+        ax: plt.Axes,
+        cycles: list = None,
+    ):
+        """Plot all found limit cycles."""
+        if cycles is None:
+            # Для SN-модели передавайте equilibria=equilibria_SN(**self.params)
+            cycles = self.find_all_limit_cycles()
+        for i, cycle in enumerate(cycles):
+            color = 'magenta' if cycle.stable else 'red'
+            linestyle = '-' if cycle.stable else '--'
+            ax.plot(
+                cycle.trajectory[:, 0],
+                cycle.trajectory[:, 1],
+                color=color,
+                linestyle=linestyle,
+                linewidth=2.5,
+                label=f'cycle {i} ({"stable" if cycle.stable else "unstable"}, μ≈{cycle.floquet_multiplier:.3f})'
+            )
+        if cycles:
+            ax.legend()

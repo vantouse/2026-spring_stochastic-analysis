@@ -22,12 +22,12 @@ def model_SN(
     ])
 
 
-def equilibria_FHN(
+def equilibria_SN(
     a: float = 1,
     b: float = 2,
 ):
     """
-    Return all the real equilibrium values of the FHN model at given parameter values.
+    Return all the real equilibrium values of the Saltzman-Nicolis model at given parameter values.
     """
     return [
         np.array([
