@@ -2,7 +2,12 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.optimize import root
 
+
 def find_limit_cycle(model_func: callable, params: dict):
+    """
+    Find limit cycle in a 2D dynamic system using Poincare section.
+    """
+    
     # 1. Находим особую точку (x*, y*)
     x_star = -params
     y_star = x_star - (x_star**3)/3

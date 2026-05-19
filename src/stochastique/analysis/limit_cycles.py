@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from typing import Callable, List, Optional
 
-from .solvers import TrajectorySolver, extract_limit_cycle
-from .numerical import find_jacobian
+from ..core.solvers import TrajectorySolver, extract_limit_cycle
+from ..core.numerical import find_jacobian
 
 
 @dataclass

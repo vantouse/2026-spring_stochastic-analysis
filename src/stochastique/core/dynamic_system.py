@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from typing import Callable, List, Optional
 
 from .solvers import TrajectorySolver
-from .bifurcation import BifurcationAnalyzer
-from .limit_cycles import LimitCycleAnalyzer, LimitCycle
+from ..analysis.bifurcation import BifurcationAnalyzer
+from ..analysis.limit_cycles import LimitCycleAnalyzer, LimitCycle
 
 
 class DynamicSystem2D:
