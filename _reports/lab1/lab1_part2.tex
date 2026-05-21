@@ -69,11 +69,14 @@
 \date{весенний семестр 2025/2026}
 
 
+
 \begin{document}
 
 \maketitle
 \tableofcontents
 \newpage
+
+
 
 \section{Метод обратной функции}
 
@@ -114,10 +117,10 @@ sample = G(sample)
 На Рис. \ref{fig:hist_inv} представлена гистограмма смоделированной выборки.
 
 \begin{figure}[h!]
-\centering
-\includegraphics[width=0.6\textwidth]{hist_inv.png}
-\caption{Гистограмма выборки $X \sim F(x)$ на интервале $[0, 1]$}
-\label{fig:hist_inv}
+    \centering
+    \includegraphics[width=0.6\textwidth]{hist_inv.png}
+    \caption{Гистограмма выборки $X \sim F(x)$ на интервале $[0, 1]$}
+    \label{fig:hist_inv}
 \end{figure}
 
 \textbf{(б)} Найдем точные значения мат ожидания $M_x$ и дисперсии $D_x$.
@@ -148,6 +151,9 @@ $$
 
 \textbf{Итог}: при размере выборки $N \geq 10^5$ оценки мат ожидания и дисперсии слабо отличаются от точных значений.
 
+
+
+\newpage
 \section{Метод Монте-Карло}
 
 Задана функция $f(x) = \sqrt{x} + 1$, $x \in (1, 4)$.

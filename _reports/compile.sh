@@ -1,4 +1,4 @@
-# Compile LaTeX presentation
+# Compile LaTeX document
 # Args:
 #   $1 -- path to project directory
 #   $2 -- TeX-source file name (optional, default: main.tex)
