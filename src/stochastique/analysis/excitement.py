@@ -6,7 +6,7 @@ from kneed import find_shape, KneeLocator
 from stochastique.analysis.simulation import simulate_trajectory
 
 
-def localize_stochastic_excitement_zones(
+def localize_stochastic_excitement(
     model_func: callable,
     params: dict,
     state_init: np.ndarray,
@@ -16,6 +16,7 @@ def localize_stochastic_excitement_zones(
     num_simulations: int = 100,
     rng: np.random.Generator = np.random.default_rng(),
     ax: plt.Axes = None,
+    highlight: bool = True,
 ):
     """
     Empirically estimate epsilon-zones of stochastic excitement for a stochastic system given by
@@ -25,6 +26,7 @@ def localize_stochastic_excitement_zones(
         epsilon-excitement zone bounds (min, max)
     """
     excitement_points = []
+    plot_alpha = 1 if num_simulations == 1 else 0.1
 
     for _ in tqdm(range(num_simulations), desc='Run multiple simulations'):
         # x_values = np.empty_like(eps_values)
@@ -72,10 +74,9 @@ def localize_stochastic_excitement_zones(
         # excitement_points.extend(excitements)
         
         if ax is not None:
-            ax.vlines(eps_values, x_min_values, x_max_values, alpha=0.1, color='blue')
-            # ax.plot(eps_values, x_values, alpha=0.3)
+            ax.vlines(eps_values, x_min_values, x_max_values, alpha=plot_alpha, color='blue')
     
-    if ax is not None:
+    if highlight and ax is not None:
         ax.axvspan(min(excitement_points), max(excitement_points), color='green', alpha=0.3, label='stochastic excitement zone')
 
     return min(excitement_points), max(excitement_points)
