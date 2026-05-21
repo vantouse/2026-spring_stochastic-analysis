@@ -9,48 +9,52 @@ def plot_eigenvalues_per_param_value(
     ax: plt.Axes,
     model_func: callable,
     params: dict,
-    equilibrium_expr: callable,
-    time_span: np.ndarray,
+    equilibrium_func: callable,
     param_name: str,
     param_values: np.ndarray,
     stable_range: tuple[float, float],
+    time_span: np.ndarray,
     epsilon: float = 0.1,
     noise_mask: np.ndarray = np.array([1, 1]),
-    covariance: bool = True,
     n_trajectories: int = 1,
+    empirical: bool = True,
+    highlight: bool = True,
 ):
     """
     Plot eigenvalues of the covariance matrix (or analytically derived stochastic sensitivity matrix) at
     different values `param_values` of a given parameter `param_name`.
 
     Args:
-        equilibrium_expr: function, which returns equilibrium point at given model parameter values
+        equilibrium_func: function, which returns equilibrium point at given model parameter values
         stable_range: parameter range, where given equilibrium remains stable
         epsilon: noise intensity (when set to 0, the system is considered deterministic)
         noise_mask: denotes the equations to which noise should be added (noise vector is multiplied by the noise mask element-wise)
-        covariance: whether to use covariance matrix on a simulation instead of analytically derived stochastic sensitivity matrix
+        covariance: whether to use empirical approach (covariance matrix on a simulation) instead of theoretical (analytically derived stochastic sensitivity matrix)
         n_trajectories: number of simulations (unused if `covariance` is False, i.e. analytical method is used)
+        highlight: whether to highlight the lambda-zone of equilibrium stability
     """
     lambda1_values = []
     lambda2_values = []
 
     for val in param_values:
         params[param_name] = val
-        equilibrium = equilibrium_expr(val)
+        equilibrium = equilibrium_func(val)
 
-        if covariance:
+        if empirical:
             trajectories = simulate_stochastic_cloud(
                 ax=None,
                 model_func=model_func,
                 params=params,
-                equilibrium=equilibrium,
+                state_init=equilibrium,
                 time_span=time_span,
                 epsilon=epsilon,
                 noise_mask=noise_mask,
-                n_trajectories=n_trajectories
+                num_simulations=n_trajectories
             )
             matrix = compute_covariance_matrix_2d(trajectories)
             eigenvalues = np.linalg.eigvals(matrix)
+            computation_approach = 'empirical'
+            colors = 'red', 'darkred'
         else:
             matrix = stochastic_sensitivity_matrix_2d(  # TODO: defined later in the notebook, and not visible here
                 model_func=model_func,
@@ -59,18 +63,23 @@ def plot_eigenvalues_per_param_value(
                 noise_mask=noise_mask,
             )
             eigenvalues = np.linalg.eigvals(matrix) * epsilon ** 2
+            computation_approach = 'theoretical'
+            colors = 'blue', 'darkblue'
         
         lambda1_values.append(eigenvalues[0])
         lambda2_values.append(eigenvalues[1])
 
-    ax.axvspan(*stable_range, color='green', alpha=0.3, label='stable equilibria')
-    ax.plot(param_values, lambda1_values, label=rf'$\lambda_1({param_name})$')
-    ax.plot(param_values, lambda2_values, label=rf'$\lambda_2({param_name})$')
+    # computation_approach = 'empirical' if empirical else 'theoretical'
+    ax.plot(param_values, lambda1_values, color=colors[0], label=rf'$\lambda_1({param_name})$ {computation_approach}')
+    ax.plot(param_values, lambda2_values, color=colors[1], label=rf'$\lambda_2({param_name})$ {computation_approach}')
 
+    if highlight:
+        ax.axvspan(*stable_range, color='green', alpha=0.3, label='stable equilibria')
+    
     ax.set_xlabel(param_name)
-    ax.set_ylabel('eigenvalues')
-    ax.legend(loc='upper right')
+    ax.set_ylabel(r'$\lambda_i$')
     ax.grid(True)
+    ax.legend()
 
 
 def plot_confidence_ellipse_2d(
@@ -121,7 +130,7 @@ def plot_confidence_ellipse_2d(
     ellipse = eigenvectors @ ellipse_local
     ellipse += equilibrium.reshape(2, 1)
     
-    ax.plot(ellipse[0], ellipse[1], 'b--', label='confidence ellipse')
+    ax.plot(ellipse[0], ellipse[1], color='magenta', linestyle='--', label='confidence ellipse')
     
     if major_axes:
         for i in range(2):
@@ -131,7 +140,7 @@ def plot_confidence_ellipse_2d(
             p1 = equilibrium - axis_length * v
             p2 = equilibrium + axis_length * v
             
-            ax.plot([p1[0], p2[0]], [p1[1], p2[1]], 'c--')
+            ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color='violet', linestyle='--')
     
     ax.set_xlabel('x')
     ax.set_ylabel('y')

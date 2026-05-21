@@ -47,7 +47,7 @@
 \renewcommand{\labelitemiii}{-}
 
 \addbibresource{biblio.bib}
-\graphicspath{ {./images/} }
+\graphicspath{ {./images/part2} }
 
 % Настройка оформления вставок кода
 \setminted{xleftmargin=\parindent, fontsize=\footnotesize, linenos, tabsize=2, breaklines}
@@ -76,12 +76,8 @@
 \newpage
 
 
-Определим константы для численных экспериментов:
-\begin{minted}{python}
-N_STEPS_DEFAULT = 1000
-EPSILON_DEFAULT = 0.1
-MARGIN_DEFAULT = 1e-6
-\end{minted}
+
+\section*{Исследование разброса случайных состояний системы вблизи устойчивого равновесия}
 
 \section{Статистический анализ результатов прямого численного моделирования}
 
@@ -105,20 +101,22 @@ $$
 
 (б) Для устойчивых равновесий построим облака случайных траекторий для разных значений интенсивности шума $\varepsilon$.
 
-Облака траекторий системы FHN вблизи устойчивого равновесия $(\overline{x}, \overline{y}) = (-a, \frac{a^3}{3} - a)$ при $a > 1$:
+На основе симуляции длительностью $T = 100$ с шагом по времени $h = 0.01$, получены облака траекторий системы FHN вблизи устойчивого равновесия $(\overline{x}, \overline{y}) = (-a, \frac{a^3}{3} - a)$ при $a > 1$ (Рис. \ref{fig:stochastic_clouds_FHN}).
 
 \begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\textwidth]{figure1.png}
-\caption{}
+    \centering
+    \includegraphics[width=1\textwidth]{stochastic_clouds_FHN.png}
+    \caption{Облака траекторий системы FHN}
+    \label{fig:stochastic_clouds_FHN}
 \end{figure}
 
-Облака траекторий системы SN вблизи устойчивого равновесия $(\overline{x}, \overline{y}) = (\sqrt{b - a}, \sqrt{b - a})$:
+На основе симуляции длительностью $T = 100$ с шагом по времени $h = 0.01$, получены облака траекторий системы SN вблизи устойчивого равновесия $(\overline{x}, \overline{y}) = (\sqrt{b - a}, \sqrt{b - a})$ при $a < 1$ (Рис. \ref{fig:stochastic_clouds_SN}).
 
 \begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\textwidth]{figure2.png}
-\caption{}
+    \centering
+    \includegraphics[width=1\textwidth]{stochastic_clouds_SN.png}
+    \caption{Облака траекторий системы SN}
+    \label{fig:stochastic_clouds_SN}
 \end{figure}
 
 (в) Запишем матрицу ковариации для облака при фиксированном $\varepsilon$, найдем ее собственные числа $\overline{\lambda_1}(a), \overline{\lambda_2}(a)$.
@@ -131,16 +129,17 @@ $$
 \end{pmatrix}
 $$
 
-Построим графики зависимостей $\overline{\lambda_1}(a), \overline{\lambda_2}(a)$ в зоне устойчивых равновесий $(a_1, a_2)$. Будем использовать значение $\varepsilon = 0.1$.
+Построим графики зависимости собственных чисел матрицы ковариации облака траекторий от параметра $a$ ($\overline{\lambda_1}(a), \overline{\lambda_2}(a)$) в зоне устойчивых равновесий $(a_1, a_2)$.
 
-Будем использовать от $1$ до $100$ симуляций и $10^3$ шагов по времени в каждой из них, таким образом получим графики для выборок размеров $N = 1 \cdot 10^3$ и $N = 100 \cdot 10^3$.
+Будем использовать от $1$ до $100$ симуляций и $10^3$ шагов по времени в каждой из них, таким образом получим графики для выборок размеров $N = 1 \cdot 10^3$ и $N = 100 \cdot 10^3$ при значении $\varepsilon = 0.05$.
 
-В модели FHN при значении параметра $a > 1$ равновесие $(x, y) = (0, 0)$ устойчиво.
+В модели FHN при значении параметра $a > 1$ равновесие $(x, y) = (0, 0)$ устойчиво. На основе симуляции длительностью $T = 10$ с шагом по времени $h = 0.01$ построим облако траекторий, вычислим матрицу ковариации и изобразим эмпирическую зависимость $\overline{\lambda_1}(a), \overline{\lambda_2}(a)$ (Рис. \ref{fig:eigenvalues_empirical_FHN}).
 
 \begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\textwidth]{figure3.png}
-\caption{}
+    \centering
+    \includegraphics[width=1\textwidth]{eigenvalues_empirical_FHN.png}
+    \caption{Собственные значения матрицы ковариации для модели FHN}
+    \label{fig:eigenvalues_empirical_FHN}
 \end{figure}
 
 В модели SN при значении параметра $a < 1$ устойчивыми являются равновесия:
@@ -152,14 +151,18 @@ $$
 \end{cases}
 $$
 
-Вблизи них система ведет себя одинаково с точностью до симметрии. Рассмотрим одно из них, например $(\overline{x}_2, \overline{y}_2)$.
+Вблизи них система ведет себя одинаково с точностью до симметрии. Рассмотрим одно из них, например $(\overline{x}_2, \overline{y}_2)$. На основе симуляции длительностью $T = 10$ с шагом по времени $h = 0.01$ построим облако траекторий, вычислим матрицу ковариации и изобразим эмпирическую зависимость $\overline{\lambda_1}(a), \overline{\lambda_2}(a)$ (Рис. \ref{fig:eigenvalues_empirical_SN}).
 
 \begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\textwidth]{figure4.png}
-\caption{}
+    \centering
+    \includegraphics[width=1\textwidth]{eigenvalues_empirical_SN.png}
+    \caption{Собственные значения матрицы ковариации для модели SN}
+    \label{fig:eigenvalues_empirical_SN}
 \end{figure}
 
+
+
+\newpage
 \section{Анализ с помощью метода стохастической чувствительности}
 (а) Запшем решение уравнения Ляпунова в общем виде.
 
@@ -376,39 +379,61 @@ F =
 \end{pmatrix}
 $$
 
-\begin{minted}{python}
-a, b = 0.5, 2
-noise_mask = np.array([1, 1])
-equilibrium_expr = np.array([np.sqrt(b - a), np.sqrt(b - a)])
-W = stochastic_sensitivity_matrix_2d(
-    model_func=model_SN,
-    params=dict(a=a, b=b),
-    equilibrium=equilibrium_expr,
-    noise_mask=noise_mask,
-)
-W
-\end{minted}
+% \begin{minted}{python}
+% a, b = 0.5, 2
+% noise_mask = np.array([1, 1])
+% equilibrium_expr = np.array([np.sqrt(b - a), np.sqrt(b - a)])
+% W = stochastic_sensitivity_matrix_2d(
+%     model_func=model_SN,
+%     params=dict(a=a, b=b),
+%     equilibrium=equilibrium_expr,
+%     noise_mask=noise_mask,
+% )
+% W
+% \end{minted}
 
 (б) Найдем собственные числа $\lambda_1, \lambda_2$ матрицы стохастической чувствительности $W$.
 
-Построим зависимость $\varepsilon \cdot \lambda_1(a), \varepsilon \cdot \lambda_2(a)$ для $\varepsilon$ из пункта 1 (б) для системы FHN.
+Построим зависимость $\varepsilon \cdot \lambda_1(a), \varepsilon \cdot \lambda_2(a)$ для значения $\varepsilon$ из пункта 1 (б) для системы FHN (Рис. \ref{fig:eigenvalues_theoretical_FHN}).
 
 \begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\textwidth]{figure5.png}
-\caption{}
+    \centering
+    \includegraphics[width=1\textwidth]{eigenvalues_theoretical_FHN.png}
+    \caption{Собственные значения матрицы стохастической чувствительности для модели FHN}
+    \label{fig:eigenvalues_theoretical_FHN}
 \end{figure}
 
-Построим зависимость $\varepsilon \cdot \lambda_1(a), \varepsilon \cdot \lambda_2(a)$ для $\varepsilon$ из пункта 1 (б) для системы SN.
+Построим зависимость $\varepsilon \cdot \lambda_1(a), \varepsilon \cdot \lambda_2(a)$ для $\varepsilon$ из пункта 1 (б) для системы SN (Рис. \ref{fig:eigenvalues_theoretical_SN}).
 
 \begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\textwidth]{figure6.png}
-\caption{}
+    \centering
+    \includegraphics[width=1\textwidth]{eigenvalues_theoretical_SN.png}
+    \caption{Собственные значения матрицы стохастической чувствительности для модели SN}
+    \label{fig:eigenvalues_theoretical_SN}
 \end{figure}
 
-Полученные графики схожи с графиками из пункта 1 (в), построенными эмпирически с помощью симуляции, по характеру изменения собственных значений вблизи границ интервала стабильности равновесных точек (зеленая зона). Однако при вычислении аналитическим путем графики получаются менее плавные, и более резко начинают возрастать на границах интервала стабильности.
+Изобразим эмпирическую и теоретическую зависимости на одном графике и сравним их (Рис. \ref{fig:eigenvalues_FHN}, \ref{fig:eigenvalues_SN}).
+Эмпирический и теоретический графики схожи по крупномасштабной структуре и по характеру изменения.
+Видно, что при увеличении размера выборки эмпирический график становится более гладким и приближается к теоретическому.
+Однако, для обеих моделей при приближении к границе интервала стабильности равновесных точек (в правых частях графиков) разница между значениями эмпирического и теоретического графиков растет.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{eigenvalues_FHN.png}
+    \caption{Сравнение собственных значений матрицы ковариации и матрицы стохастической чувствительности для модели FHN}
+    \label{fig:eigenvalues_FHN}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{eigenvalues_SN.png}
+    \caption{Сравнение собственных значений матрицы ковариации и матрицы стохастической чувствительности для модели SN}
+    \label{fig:eigenvalues_SN}
+\end{figure}
+
+
+
+\newpage
 \section{Доверительные эллипсы}
 (в) Для выбранных нескольких значений параметра $a$ построим доверительные эллипсы (возьмем облако из пункта 1 (б)).
 
@@ -437,20 +462,22 @@ $$
 k = \sqrt{-\ln(1 - P)}
 $$
 
-Построим доверительные эллипсы для системы FHN. Рассмотрим несколько значений параметра $a$ внутри интервала, где рассматриваемое равновесие сохраняет устойчивость.
+Построим доверительные эллипсы для системы FHN. Рассмотрим несколько значений параметра $a$ внутри интервала, где рассматриваемое равновесие сохраняет устойчивость (Рис. \ref{fig:confidence_ellipse_FHN}).
 
 \begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\textwidth]{figure7.png}
-\caption{}
+    \centering
+    \includegraphics[width=1\textwidth]{confidence_ellipse_FHN.png}
+    \caption{Доверительные эллипсы для траекторий модели FHN.}
+    \label{fig:confidence_ellipse_FHN}
 \end{figure}
 
-Построим доверительные эллипсы для системы SN. Рассмотрим несколько значений параметра $a$ внутри интервала, где рассматриваемое равновесие сохраняет устойчивость.
+Построим доверительные эллипсы для системы SN. Рассмотрим несколько значений параметра $a$ внутри интервала, где рассматриваемое равновесие сохраняет устойчивость (Рис. \ref{fig:confidence_ellipse_SN}).
 
 \begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\textwidth]{figure8.png}
-\caption{}
+    \centering
+    \includegraphics[width=1\textwidth]{confidence_ellipse_SN.png}
+    \caption{Доверительные эллипсы для траекторий модели SN.}
+    \label{fig:confidence_ellipse_SN}
 \end{figure}
 
 

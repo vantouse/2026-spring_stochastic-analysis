@@ -45,19 +45,20 @@ def simulate_stochastic_cloud(
     ax: plt.Axes,
     model_func: callable,
     params: dict,
-    equilibrium: np.ndarray,
     time_span: np.ndarray,
-    epsilon: float,
     noise_mask: np.ndarray,
-    n_trajectories: int = 1,
-    spread_init: float = 0.05,
+    state_init: np.ndarray,
+    epsilon: float,
+    num_simulations: int = 100,
+    spread_init: float = 0.,
+    use_scatter: bool = True,
 ):
     rng = np.random.default_rng()
     trajectories = []
     
-    for _ in range(n_trajectories):
-        # start near the equilirium
-        state_init = equilibrium + rng.normal(0, spread_init, size=2)
+    for _ in range(num_simulations):
+        if spread_init > 0:
+            state_init = state_init + rng.normal(0, spread_init, size=2)
         
         trajectory = simulate_trajectory(
             model_func=model_func,
@@ -71,13 +72,17 @@ def simulate_stochastic_cloud(
         trajectories.append(trajectory)
 
         if ax is not None:
-            ax.plot(trajectory[:, 0], trajectory[:, 1], alpha=0.3)
+            if use_scatter:
+                ax.scatter(trajectory[:, 0], trajectory[:, 1], s=1, c='b', alpha=0.1)
+            else:
+                ax.plot(trajectory[:, 0], trajectory[:, 1], alpha=0.1)
+            
     
     if ax is not None:
-        ax.scatter(*equilibrium, color='red', s=50, zorder=100, label='equilibrium')
-        ax.set_title(f"Noise cloud ({epsilon=})")
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
+        ax.scatter(*state_init, color='red', s=50, zorder=100, label='equilibrium')
+        ax.set_title(rf"Stochastic cloud ($\varepsilon$ = {epsilon})")
+        ax.set_xlabel("$x$")
+        ax.set_ylabel("$y$")
         ax.legend(loc="upper right")
         ax.grid(True)
 
