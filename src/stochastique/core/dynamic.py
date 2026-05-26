@@ -224,21 +224,21 @@ class DynamicSystem2D:
         """
         Try to detect and plot limit cycle.
         """
+        if unstable:
+            time_span = time_span[::-1]
         for _ in range(n_attempts):
-            if unstable:
-                pass
-            else:
-                if state_init is None:
-                    state_init = np.random.uniform(bounds[0], bounds[1], size=2)
-                solution = self.solve(
-                    state_init,
-                    time_span
-                )
-                cycle = self.extract_limit_cycle(solution)
+            if state_init is None:
+                state_init = np.random.uniform(bounds[0], bounds[1], size=2)
+            solution = self.solve(
+                state_init,
+                time_span
+            )
+            cycle = self.extract_limit_cycle(solution)
 
             if cycle is not None:
-                color = 'magenta' if not unstable else 'violet'
-                ax.plot(cycle[:,0], cycle[:,1], color=color, linewidth=2)
+                color = 'lime' if not unstable else 'cyan'
+                label = 'stable cycle' if not unstable else 'unstable cycle'
+                ax.plot(cycle[:,0], cycle[:,1], color=color, linewidth=2, label=label)
 
                 return True
         return False
@@ -249,6 +249,7 @@ class DynamicSystem2D:
         time_span: np.ndarray,
         bounds: tuple = (-2, 2),
         grid_size: int = 10,
+        seacrh_limit_cycles: bool = True,
         limit_cycle_per_state: bool = True,
         equilibrium: np.ndarray = None
     ) -> None:
@@ -271,10 +272,13 @@ class DynamicSystem2D:
             if np.all(np.isfinite(solution)):
                 ax.plot(solution[:, 0], solution[:, 1], color='blue', alpha=0.5)
 
-            if limit_cycle_per_state:
+            if seacrh_limit_cycles and limit_cycle_per_state:
                 found_stable = self.plot_limit_cycle(ax=ax, time_span=time_span, state_init=state_init)
+                found_unstable = self.plot_limit_cycle(ax=ax, time_span=time_span, state_init=state_init, unstable=True)
                 if found_stable:
                     progress_bar.set_description("Stable limit cycle found!")
+                if found_unstable:
+                    progress_bar.set_description("Unstable limit cycle found!")
 
         # plot vector field
         X, Y = np.meshgrid(np.linspace(xmin, xmax, 25), np.linspace(ymin, ymax, 25))
@@ -294,10 +298,13 @@ class DynamicSystem2D:
 
         ax.streamplot(X, Y, U, V, density=1.2, color='black', linewidth=0.5)
 
-        if not limit_cycle_per_state:
-            found_stable = self.plot_limit_cycle(ax=ax, time_span=time_span, bounds=bounds)
+        if seacrh_limit_cycles and not limit_cycle_per_state:
+            found_stable = self.plot_limit_cycle(ax=ax, time_span=time_span, state_init=state_init)
+            found_unstable = self.plot_limit_cycle(ax=ax, time_span=time_span, state_init=state_init, unstable=True)
             if found_stable:
-                print("Stable limit cycle found!")
+                progress_bar.set_description("Stable limit cycle found!")
+            if found_unstable:
+                progress_bar.set_description("Unstable limit cycle found!")
         
         ax.set_xlim(xmin, xmax)
         ax.set_ylim(ymin, ymax)

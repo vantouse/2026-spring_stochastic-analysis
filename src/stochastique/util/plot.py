@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from stochastique.analysis.simulation import simulate_stochastic_cloud
 from stochastique.core.numerical import compute_covariance_matrix_2d, stochastic_sensitivity_matrix_2d
@@ -19,6 +20,7 @@ def plot_eigenvalues_per_param_value(
     n_trajectories: int = 1,
     empirical: bool = True,
     highlight: bool = True,
+    verbose: bool = True,
 ):
     """
     Plot eigenvalues of the covariance matrix (or analytically derived stochastic sensitivity matrix) at
@@ -36,7 +38,9 @@ def plot_eigenvalues_per_param_value(
     lambda1_values = []
     lambda2_values = []
 
-    for val in param_values:
+    progress_bar = tqdm(param_values, desc='Compute eigenvalues per parameter value') if verbose else param_values
+    
+    for val in progress_bar:
         params[param_name] = val
         equilibrium = equilibrium_func(val)
 
@@ -49,14 +53,15 @@ def plot_eigenvalues_per_param_value(
                 time_span=time_span,
                 epsilon=epsilon,
                 noise_mask=noise_mask,
-                num_simulations=n_trajectories
+                num_simulations=n_trajectories,
+                verbose=not verbose,
             )
             matrix = compute_covariance_matrix_2d(trajectories)
             eigenvalues = np.linalg.eigvals(matrix)
             computation_approach = 'empirical'
             colors = 'red', 'darkred'
         else:
-            matrix = stochastic_sensitivity_matrix_2d(  # TODO: defined later in the notebook, and not visible here
+            matrix = stochastic_sensitivity_matrix_2d(
                 model_func=model_func,
                 params=params,
                 equilibrium=equilibrium,
@@ -146,3 +151,15 @@ def plot_confidence_ellipse_2d(
     ax.set_ylabel('y')
     ax.legend(loc='upper right')
     ax.grid(True)
+
+
+def legend_unique_labels(ax, **kwargs):
+    """
+    Add only the unique label entries to the legend of the axis `ax`.
+    
+    Can be useful for creating a clean legend in cases when multiple objects
+    with the same legend label are being plotted iteratively in a loop.
+    """
+    handles, labels = ax.get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    ax.legend(by_label.values(), by_label.keys(), **kwargs)

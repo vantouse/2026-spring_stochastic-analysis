@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from stochastique.core.step import step_stochastic_em, step_stochastic_rk4
 
@@ -52,11 +53,14 @@ def simulate_stochastic_cloud(
     num_simulations: int = 100,
     spread_init: float = 0.,
     use_scatter: bool = True,
+    verbose: bool = True,
 ):
     rng = np.random.default_rng()
     trajectories = []
     
-    for _ in range(num_simulations):
+    progress_bar = tqdm(range(num_simulations), desc='Simulate system trajectories') if verbose else range(num_simulations)
+    
+    for _ in progress_bar:
         if spread_init > 0:
             state_init = state_init + rng.normal(0, spread_init, size=2)
         
