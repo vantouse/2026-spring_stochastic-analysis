@@ -129,18 +129,20 @@
 
 Построим доверительные эллипсы в допороговой и надпороговой зонах для $a = 1.1$, $a = 1.01$ (Рис. \ref{fig:confidence_ellipse_1_1}, \ref{fig:confidence_ellipse_1_01}).
 
-Траектория системы демонстрирует ожидаемое поведение и, находясь в режиме возбуждения, выходит за пределы доверительного эллипса.
+В режиме без возбуждения доверительные эллипсы полностью ложатся в допороговую зону, и траектории совершают лишь небольшие колебания вокруг устойчивого равновесия.
+В режиме возбуждения эллипсы захватывают надпороговую зону, и шум заставляет траектории выходить из окрестности равновесия на предельный цикл.
+% Это особенно хорошо видно при $a = 1.01$.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=1\textwidth]{confidence_ellipse_a=1,1.png}
+    \includegraphics[width=1\textwidth]{confidence_ellipse_a=1,1_deterministic.png}
     \caption{Доверительные эллипсы для $a=1.1$.}
     \label{fig:confidence_ellipse_1_1}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=1\textwidth]{confidence_ellipse_a=1,01.png}
+    \includegraphics[width=1\textwidth]{confidence_ellipse_a=1,01_deterministic.png}
     \caption{Доверительные эллипсы для $a=1.01$.}
     \label{fig:confidence_ellipse_1_01}
 \end{figure}
