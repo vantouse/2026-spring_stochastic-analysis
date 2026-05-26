@@ -1,0 +1,177 @@
+\documentclass[17pt]{article}
+
+\usepackage{cmap}	% поиск по документу
+\usepackage{hyperref}	% поддержка гиперссылок
+\usepackage{geometry}	% настройка геометрии документа
+\usepackage{multicol}   % настройка шаблона расположения текста
+\usepackage{extsizes}	% расширенная настройка размеров шрифтов
+\usepackage{indentfirst}    % отступ для первого абзаца
+\usepackage{tabularx}	% расширенные таблицы
+\usepackage{makecell}   % настройка клеток таблиц
+\usepackage{caption}    % настройка подписей к вставкам
+\usepackage[table]{xcolor}  % покраска таблиц
+\usepackage{graphicx}	% вставка изображений
+\usepackage{wrapfig, booktabs}	% оформление таблиц
+\usepackage{graphicx, caption, subcaption}
+\usepackage{minted}    % вставка кода
+
+\usepackage{color}	% настройка цвета текста - \textcolor
+\usepackage{soul}	% выделение текста - \hl
+\usepackage[T2A]{fontenc}	% поддержка кириллических символов
+\usepackage[utf8]{inputenc} % поддержка кириллических символов
+\usepackage[english,russian]{babel}	% поддержка кириллических символов
+\usepackage{csquotes, biblatex}   % вывод библиографии
+
+\usepackage{mathcmd}	% математические команды
+\usepackage{amsfonts}	% математические символы 1
+\usepackage{amssymb}	% математические символы 2
+\usepackage{amsmath}	% математические символы 3
+\usepackage{amsthm}	% работа с теоремами
+
+% Настройка окружения теорем 1 (RU)
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{corollary}{Следствие}[theorem]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{example}{Пример}[section]
+\newtheorem*{remark}{Утверждение}
+\addto\captionsrussian{\renewcommand\proofname{Док-во:}}
+
+% Настройка окружения теорем 2 (EN)
+%\newtheorem{theorem}{TH}[section]
+%\newtheorem{corollary}{CO}[theorem]
+%\newtheorem{lemma}[theorem]{LM}
+%\newtheorem{example}{EX}[section]
+%\addto\captionsrussian{\renewcommand\proofname{PF:}}
+
+\renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemiii}{-}
+
+\addbibresource{biblio.bib}
+\graphicspath{ {./images/} }
+
+% Настройка оформления вставок кода
+\setminted{xleftmargin=\parindent, fontsize=\footnotesize, linenos, tabsize=2, breaklines}
+\usemintedstyle{emacs} 
+
+% Настройка отступов
+\geometry{
+    a4paper,
+    % total={200mm,287mm},
+    left=10mm,
+    right=10mm,
+    top=10mm,
+    bottom=20mm
+}
+
+% Заголовок
+\title{
+    \textbf{Методы моделирования и анализа стохастических систем} \\
+    \large Лабораторная работа № 5: \\
+    Исследование индуцированных шумом переходов в модели SN
+}
+\author{Костарев Иван (МЕНМ-150201)}
+\date{весна 2025/2026}
+
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+
+
+\newpage
+\section{Аттракторы детерминированной модели}
+\label{sec:attractors}
+
+(A) Изобразим 2 устойчивых равновесия при значениях параметра $a = 0.5$, $a = 7$ (Рис. \ref{fig:attractors_a}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{attractors_a.png}
+    \caption{Аттракторы при $a = 0.5$, $a = 7$.}
+    \label{fig:attractors_a}
+\end{figure}
+
+(B) Изобразим 2 устойчивых равновесия, а также устойчивый и неустойчивый предельный цикл при значениях параметра $a = 0.715$, $a = 0.75$ (Рис. \ref{fig:attractors_b}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{attractors_b.png}
+    \caption{Аттракторы при $a = 0.715$, $a = 0.75$.}
+    \label{fig:attractors_b}
+\end{figure}
+
+(C)$^*$ Изобразим 2 устойчивых равновесия, а также устойчивый и 2 неустойчивых предельных цикла при значениях параметра $a = 0.8$, $a = 0.9$ (Рис. \ref{fig:attractors_c}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{attractors_c.png}
+    \caption{Аттракторы при $a = 0.8$, $a = 0.9$.}
+    \label{fig:attractors_c}
+\end{figure}
+
+
+
+\newpage
+\section{Исследование ИШП между устойчивыми равновесиями для случая A}
+
+Исследуем и визуализируем переходы между устойчивыми равновесиями системы SN для случая A из раздела \ref{sec:attractors}, при $a = 0.5$.
+
+(a) Локализуем бассейны притяжения равновесий $M_1$, $M_2$ (Рис. \ref{fig:basins_of_attraction}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{basins_of_attraction.png}
+    \caption{Бассейны притяжения равновесий.}
+    \label{fig:basins_of_attraction}
+\end{figure}
+
+(б) Построим доверительные эллипсы для равновесий $M_1$, $M_2$ (Рис. \ref{fig:confidence_ellipse}).
+С ростом $\varepsilon$ доверительные эллипсы выходят за границы бассейна притяжения своего равновесия.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{confidence_ellipse.png}
+    \caption{Доверительные эллипсы для аттракторов при $\varepsilon = 0.1$, $\varepsilon = 0.2$.}
+    \label{fig:confidence_ellipse}
+\end{figure}
+
+(в) Построим временные ряды для траекторий с началом в равновесиях $M_1$, $M_2$ (Рис. \ref{fig:time_series}).
+С ростом $\varepsilon$, после достижения определенного порога, можно наблюдать индуцированные шумами переходы между равновесиями системы.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{time_series.png}
+    \caption{Временные ряды для траекторий при $\varepsilon = 0.1$, $\varepsilon = 0.2$.}
+    \label{fig:time_series}
+\end{figure}
+
+
+
+\newpage
+\section{Исследование ИШП между равновесиями и предельным циклом для случая C}
+
+Исследуем и визуализируем переходы между устойчивыми равновесиями системы SN для случая C из раздела \ref{sec:attractors}, при $a = 0.9$.
+
+(а) Построим доверительные эллипсы для равновесий $M_1$, $M_2$ (Рис. \ref{fig:cycle_confidence_ellipse}).
+С ростом $\varepsilon$ эллипсы выходят за границы неустойчивого предельного цикла вокруг равновесия, что делает возможным выход траектории из окрестности равновесия на предельный цикл.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{cycle_confidence_ellipse.png}
+    \caption{Доверительные эллипсы для аттракторов при $\varepsilon = 0.02$, $\varepsilon = 0.05$.}
+    \label{fig:cycle_confidence_ellipse}
+\end{figure}
+
+(б) Построим временные ряды для траекторий с началом в равновесиях $M_1$, $M_2$ (Рис. \ref{fig:cycle_time_series}).
+С ростом $\varepsilon$, после достижения определенного порога, можно наблюдать индуцированные шумами переходы между равновесиями и неустойчивыми предельными циклами.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{cycle_time_series.png}
+    \caption{Временные ряды для траекторий при $\varepsilon = 0.02$, $\varepsilon = 0.05$.}
+    \label{fig:cycle_time_series}
+\end{figure}
+
+\end{document}
