@@ -1,0 +1,166 @@
+\graphicspath{ {./lab3/images/part1/} }
+
+\newpage
+\section{Лабораторная работа № 3, часть 1: Анализ детерминированной задачи}
+\subsection{Нейронная модель ФитцХью-Нагумо (FHN)}
+
+$$
+\begin{cases}
+    \dot{x} = \frac{1}{\delta} (x - \frac{x^3}{3} - y) \\
+    \dot{y} = x + a
+\end{cases}
+$$
+
+1. Найдем равновесия системы.
+
+$$
+\begin{cases}
+    \frac{1}{\delta} (x - \frac{x^3}{3} - y) = 0 \\
+    x + a = 0
+\end{cases} \implies
+\begin{cases}
+    \overline{x} = -a \\
+    \overline{y} = \frac{a^3}{3} - a
+\end{cases}
+$$
+
+2. Исследуем равновесия на устойчивость.
+
+$$
+J(x, y) = \begin{pmatrix}
+    \frac{1}{\delta} (1 - x^2) & \frac{1}{\delta} \\
+    1 & 0
+\end{pmatrix}
+$$
+
+$$
+|J(x, y) - \lambda E| = 0
+$$
+
+$$
+\lambda_{1,2}(x, y) = \frac{-\delta x^2 + \delta \pm \delta \sqrt{x^4 - 2 x^2 - 4 \delta + 1}}{2 \delta^2}
+$$
+
+Далее с помощью численной процедуры исследуем поведение собственных чисел якобиана в равновесных точках при различных значениях параметра $a$.
+
+% \begin{minted}{python}
+% FHN = DynamicSystem2D(
+%     model_FHN,
+%     params=dict(delta=0.1, a=1)
+% )
+% \end{minted}
+
+3. Построим бифуркационную диаграмму по параметру $a$ (Рис. \ref{fig:fhn_bifurcation_diagram}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{fhn_bifurcation_diagram.png}
+    \caption{Бифуркационная диаграмма системы FHN.}
+    \label{fig:fhn_bifurcation_diagram}
+\end{figure}
+
+
+4. Построим типичные фазовые портреты для различных значений $a$ по бифуркационной диаграмме (Рис \ref{fig:fhn_phase_portraits}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{fhn_phase_portraits.png}
+    \caption{Фазовые портреты системы FHN.}
+    \label{fig:fhn_phase_portraits}
+\end{figure}
+
+Для нейронной модели ФитцХью-Нагумо при значении параметра $a = 1$ наблюдается бифуркация Хопфа.
+При $a < 1$ в системе существует устойчивый предельный цикл, и равновесие $(\overline{x}, \overline{y})$ неустойчиво.
+При $a > 1$ предельный цикл исчезает, и равновесие $(\overline{x}, \overline{y})$ становится устойчивым.
+
+
+
+\newpage
+\subsection{Климатическая модель Зальцман-Николис (SN)}
+
+$$
+\begin{cases}
+    \dot{x} = y - x \\
+    \dot{y} = -a x + b y - x^2 y
+\end{cases}
+$$
+
+1. Найдем равновесия системы.
+
+\begin{multline*}
+    \begin{cases}
+        y - x = 0 \\
+        -a x + b y - x^2 y = 0
+    \end{cases}
+    \implies
+    \begin{cases}
+        x = y \\
+        x(x^2 + a - b) = 0
+    \end{cases}
+    \implies \\
+    \implies
+    \begin{cases}
+        (\overline{x}_1, \overline{y}_1) = (0, 0) \\
+        (\overline{x}_2, \overline{y}_2) = (\sqrt{b - a}, \sqrt{b - a}) \\
+        (\overline{x}_3, \overline{y}_3) = (-\sqrt{b - a}, -\sqrt{b - a})
+    \end{cases}
+\end{multline*}
+
+2. Исследуем равновесия на устойчивость.
+
+$$
+J(x, y) = \begin{pmatrix}
+    -1 & 1 \\
+    -a - 2xy & b - x^2
+\end{pmatrix}
+$$
+
+$$
+|J(x, y) - \lambda E| = 0
+$$
+
+$$
+\lambda_{1,2}(x, y) = \frac{\pm \sqrt{-4a + b^2 - 2b x^2 + 2b + x^4 - 2x^2 - 8xy + 1} + b - x^2 - 1}{2}
+$$
+
+Далее с помощью численной процедуры исследуем поведение собственных чисел якобиана в равновесных точках при различных значениях параметра $a$.
+
+% \begin{minted}{python}
+% SN = DynamicSystem2D(
+%     model_SN,
+%     params=dict(a=1, b=2)
+% )
+% \end{minted}
+
+3. Построим бифуркационную диаграмму по параметру $a$ (Рис. \ref{fig:sn_bifurcation_diagram}). Изобразим предельные циклы и равновесия:
+
+$$
+\begin{cases}
+    (\overline{x}_1, \overline{y}_1) = (0, 0) \\
+    (\overline{x}_2, \overline{y}_2) = (\sqrt{b - a}, \sqrt{b - a}) \\
+    (\overline{x}_3, \overline{y}_3) = (-\sqrt{b - a}, -\sqrt{b - a})
+\end{cases}
+$$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{sn_bifurcation_diagram_single.png}
+    \caption{Бифуркационная диаграмма системы SN.}
+    \label{fig:sn_bifurcation_diagram}
+\end{figure}
+
+
+4. Построим типичные фазовые портреты для различных значений $a$ по бифуркационной диаграмме (Рис. \ref{fig:sn_phase_portraits}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{sn_phase_portraits.png}
+    \caption{Фазовые портреты системы SN.}
+    \label{fig:sn_phase_portraits}
+\end{figure}
+
+Для климатической модели Зальцман-Николис при значении параметра $a = 1$ наблюдается бифуркация Хопфа: равновесия $(\overline{x}_2, \overline{y}_2)$, $(\overline{x}_3, \overline{y}_3)$ становятся неустойчивыми.
+При $a < 1$ в системе существуют неустойчивые предельные циклы вокруг устойчивых фокусов $(\overline{x}_2, \overline{y}_2)$, $(\overline{x}_3, \overline{y}_3)$.
+При $a > 1$ фокусы становятся неустойчивыми, и предельные циклы фокруг них исчезают.
+При $a = 2$ наблюдается бифуркация типа ``вилка'': происходит слияние седла $(\overline{x}_1, \overline{y}_1)$ с неустойчивыми фокусами $(\overline{x}_2, \overline{y}_2)$, $(\overline{x}_3, \overline{y}_3)$.
+При всех рассмотренных значениях параметра $a$ в системе сохраняется внешний устойчивый предельный цикл.

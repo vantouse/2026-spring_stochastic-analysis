@@ -1,0 +1,100 @@
+\graphicspath{ {./lab1/images/part1/} }
+
+\newpage
+\section{Лабораторная работа № 1, часть 1: Генерация псевдослучайных чисел}
+\subsection{Инициализация ГПСЧ для X $\sim$ U[0, 1]}
+
+Инициализируем генератор \texttt{rng}, используя конструктор \texttt{default\_rng} из библиотеки \texttt{numpy}:
+\begin{minted}{python}
+rng = np.random.default_rng()
+\end{minted}
+
+
+
+\subsection{Нахождение зависимости между мат ожиданием, дисперсией и размером выборки}
+
+Для исследования сходимости выборочных характеристик генерируются массивы различной длины и вычисляются их математические ожидания и дисперсии.
+
+Построим график (Рис. \ref{fig:mean_vs_N}) зависимости математического ожидания \texttt{mean} от размера выборки $N$.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{mean_vs_N.png}
+    \caption{Зависимость выборочного математического ожидания от размера выборки $N$.}
+    \label{fig:mean_vs_N}
+\end{figure}
+
+Построим график (Рис. \ref{fig:var_vs_N}) зависимости дисперсии \texttt{var} от размера выборки $N$.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{var_vs_N.png}
+    \caption{Зависимость выборочной дисперсии от размера выборки $N$.}
+    \label{fig:var_vs_N}
+\end{figure}
+
+
+
+\newpage
+\subsection{Построение гистограммы и вычисление погрешности (расхождение сгенерированных чисел с теоретическим значением)}
+
+Генерируется выборка большого объема ($N = 10^8$) и строится ее нормированная гистограмма:
+\begin{minted}{python}
+sample_size = 10 ** 8
+sample = rng.uniform(0., 1., size=sample_size)
+num_bins = 32
+sample_hist, bin_edges = np.histogram(sample, bins=num_bins, density=True)
+\end{minted}
+
+Построим приближенную гистограмму (Рис. \ref{fig:histogram}) равномерного распределения на основе сгенерированных данных (\texttt{sample}).
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{histogram.png}
+    \caption{Приближенная гистограмма равномерного распределения $U[0, 1]$.}
+    \label{fig:histogram}
+\end{figure}
+
+Определим функцию для вычисления погрешности приближения гистограммы к теоретической плотности ($p_{\text{true}} = 1$):
+\begin{minted}{python}
+def distribution_error(p: np.ndarray, p_true: float = 1.):
+    return np.sum((p - p_true) ** 2)
+\end{minted}
+
+Построим график (Рис. \ref{fig:error_vs_N}) зависимости погрешности \texttt{distribution\_error} от размера выборки $N$.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{error_vs_N.png}
+    \caption{Зависимость погрешности распределения от размера выборки $N$.}
+    \label{fig:error_vs_N}
+\end{figure}
+
+
+
+\newpage
+\subsection{Вычисление коэффициента корреляции между двумя выборками из одного распределения, но построенными разными способами}
+
+Для оценки линейной зависимости реализуем вычисление коэффициента корреляции Пирсона:
+\begin{minted}{python}
+def pearson_r(x: np.ndarray, y: np.ndarray):
+    return np.sum((x - x.mean()) * (y - y.mean())) / np.sqrt(np.sum((x - x.mean()) ** 2) * np.sum((y - y.mean()) ** 2))
+\end{minted}
+
+\vspace{0.5em}
+\textbf{(а)} генерация двух независимых выборок.
+
+Построим график (Рис. \ref{fig:corr_a}) зависимости коэффициента корреляции \texttt{pearson\_r} от размера выборки $N$ (вариант а).
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{corr_a.png}
+    \caption{Зависимость коэффициента корреляции от размера выборки $N$ (вариант а).}
+    \label{fig:corr_a}
+\end{figure}
+
+\vspace{0.5em}
+\textbf{(б)} генерация единой последовательности и разделение на четные/нечетные элементы.
+
+Построим график (Рис. \ref{fig:corr_b}) зависимости коэффициента корреляции \texttt{pearson\_r} от размера выборки $N$ (вариант б).
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{corr_b.png}
+    \caption{Зависимость коэффициента корреляции от размера выборки $N$ (вариант б).}
+    \label{fig:corr_b}
+\end{figure}

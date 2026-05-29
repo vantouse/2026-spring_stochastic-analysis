@@ -1,0 +1,109 @@
+\graphicspath{ {./lab1/images/part2/} }
+
+\newpage
+\section{Лабораторная работа № 1, часть 2: Равномерное распределение}
+\subsection{Метод обратной функции}
+
+Задана плотность
+
+$$
+\begin{cases}
+    f(x) = \frac{e^x}{e - 1}, & x \in (0, 1) \\
+    0, & \text{иначе}
+\end{cases}
+$$
+
+Из плотности $f(x)$ найдем распределение $F(x)$:
+
+$$
+F(x) = \int_{-\infty}^{x} f(t)dt = \int_{-\infty}^{0} 0 dt + \int_{0}^{x} \frac{e^t}{e - 1}dt = \frac{1}{e - 1}(e^x - e^{0}) = \frac{e^x - 1}{e - 1}
+$$
+при $x \in (0, 1)$.
+
+Найдем обратную функцию $G(y) = F^{-1}(y)$:
+
+$$
+G(y) = \ln{1 + y(e - 1)}
+$$
+при $y \in (0, 1)$.
+
+\textbf{(а)} Смоделируем $N = 10^8$ значений величины из распределения $F(x)$. Для этого используется функция $G(y)$, примененная к равномерно распределенной выборке.
+
+\begin{minted}[fontsize=\footnotesize]{python}
+def G(y):
+    return np.log(1 + y * (np.e - 1))
+
+sample_size = 10 ** 8
+sample = rng.uniform(0., 1., size=sample_size)
+sample = G(sample)
+\end{minted}
+
+На Рис. \ref{fig:hist_inv} представлена гистограмма смоделированной выборки.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{hist_inv.png}
+    \caption{Гистограмма выборки $X \sim F(x)$ на интервале $[0, 1]$}
+    \label{fig:hist_inv}
+\end{figure}
+
+\textbf{(б)} Найдем точные значения мат ожидания $M_x$ и дисперсии $D_x$.
+
+$$
+M_x = \int_{0}^{1} x f(x)dx = \int_{0}^{1} x \frac{e^x}{e - 1}dx = \frac{1}{e - 1}
+$$
+
+$$
+D_x = \int_{0}^{1} x^2 f(x)dx - M_x^2 = \int_{0}^{1} x^2 \frac{e^x}{e - 1}dx - M_x^2 = \frac{e - 2}{e - 1} - (\frac{1}{e - 1})^2 = \frac{e^2 - 3e + 1}{(e - 1)^2}.
+$$
+
+\textbf{(в)} Вычислим оценки мат ожидания и дисперсии для различных размеров выборки $N$ и сравним их с точными значениями (Рис. \ref{fig:mean_inv}, \ref{fig:var_inv}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{mean_comp_inv.png}
+    \caption{Сравнение выборочного среднего с точным значением}
+    \label{fig:mean_inv}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{var_comp_inv.png}
+    \caption{Сравнение выборочной дисперсии с точным значением}
+    \label{fig:var_inv}
+\end{figure}
+
+\textbf{Итог}: при размере выборки $N \geq 10^5$ оценки мат ожидания и дисперсии слабо отличаются от точных значений.
+
+
+
+\newpage
+\subsection{Метод Монте-Карло}
+
+Задана функция $f(x) = \sqrt{x} + 1$, $x \in (1, 4)$.
+
+Найдем точное значение интеграла:
+
+$$
+I = \int_{1}^{4} f(x)dx = \int_{1}^{4} (\sqrt{x} + 1)dx = \frac{23}{3} \approx 7.67
+$$
+
+Найдем приближенное значение интеграла методом Монте-Карло и сравним его с точным (Рис. \ref{fig:mc_comp}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{mc_comp.png}
+    \caption{Сравнение оценки интеграла с точным значением}
+    \label{fig:mc_comp}
+\end{figure}
+
+Визуализируем метод Монте-Карло для функции $f(x)$ на примере $N = 1000$ случайных точек (Рис. \ref{fig:mc_vis}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{mc_vis.png}
+    \caption{Визуализация метода Монте-Карло для $N=1000$}
+    \label{fig:mc_vis}
+\end{figure}
+
+\textbf{Итог}: при количестве точек $N \geq 10^7$ оценка интеграла слабо отличается от точного значения.

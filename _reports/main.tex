@@ -1,0 +1,86 @@
+\documentclass[17pt]{article}
+
+\usepackage{cmap}	% поиск по документу
+\usepackage{hyperref}	% поддержка гиперссылок
+\usepackage{geometry}	% настройка геометрии документа
+\usepackage{multicol}   % настройка шаблона расположения текста
+\usepackage{extsizes}	% расширенная настройка размеров шрифтов
+\usepackage{indentfirst}    % отступ для первого абзаца
+\usepackage{tabularx}	% расширенные таблицы
+\usepackage{makecell}   % настройка клеток таблиц
+\usepackage{caption}    % настройка подписей к вставкам
+\usepackage[table]{xcolor}  % покраска таблиц
+\usepackage{graphicx}	% вставка изображений
+\usepackage{wrapfig, booktabs}	% оформление таблиц
+\usepackage{graphicx, caption, subcaption}
+\usepackage{minted}    % вставка кода
+
+\usepackage{color}	% настройка цвета текста - \textcolor
+\usepackage{soul}	% выделение текста - \hl
+\usepackage[T2A]{fontenc}	% поддержка кириллических символов
+\usepackage[utf8]{inputenc} % поддержка кириллических символов
+\usepackage[english,russian]{babel}	% поддержка кириллических символов
+\usepackage{csquotes, biblatex}   % вывод библиографии
+
+\usepackage{mathcmd}	% математические команды
+\usepackage{amsfonts}	% математические символы 1
+\usepackage{amssymb}	% математические символы 2
+\usepackage{amsmath}	% математические символы 3
+\usepackage{amsthm}	% работа с теоремами
+
+% Настройка окружения теорем 1 (RU)
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{corollary}{Следствие}[theorem]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{example}{Пример}[section]
+\newtheorem*{remark}{Утверждение}
+\addto\captionsrussian{\renewcommand\proofname{Док-во:}}
+
+% Настройка окружения теорем 2 (EN)
+%\newtheorem{theorem}{TH}[section]
+%\newtheorem{corollary}{CO}[theorem]
+%\newtheorem{lemma}[theorem]{LM}
+%\newtheorem{example}{EX}[section]
+%\addto\captionsrussian{\renewcommand\proofname{PF:}}
+
+\renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemiii}{-}
+
+\addbibresource{biblio.bib}
+
+% Настройка оформления вставок кода
+\setminted{xleftmargin=\parindent, fontsize=\footnotesize, linenos, tabsize=2, breaklines}
+\usemintedstyle{emacs} 
+
+% Настройка отступов
+\geometry{
+    a4paper,
+    % total={200mm,287mm},
+    left=10mm,
+    right=10mm,
+    top=10mm,
+    bottom=20mm
+}
+
+% Заголовок
+\title{
+    \textbf{Методы моделирования и анализа стохастических систем} \\
+    \large Отчет по лабораторным работам
+}
+\author{Костарев Иван (МЕНМ-150201)}
+\date{весна 2025/2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\input{lab1/lab1_part1_include}
+\input{lab1/lab1_part2_include}
+\input{lab2/lab2_include}
+\input{lab3/lab3_part1_include}
+\input{lab3/lab3_part2_include}
+\input{lab4/lab4_include}
+\input{lab5/lab5_include}
+
+\end{document}

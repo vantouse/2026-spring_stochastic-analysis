@@ -1,0 +1,67 @@
+\graphicspath{ {./lab4/images/} }
+
+\newpage
+\section{Лабораторная работа № 4: Исследование стохастического возбуждения колебаний в ФХН-модели}
+\subsection{Сравнение стохастических решений}
+
+Проведем сравнение стохастических решений для $a = 1.1$, $a = 1.01$
+
+(а) Построим графики $x(\varepsilon)$, пропустив переходный процесс $T = 100$ (Рис. \ref{fig:excitement_amplitude}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{excitement_amplitude.png}
+    \caption{Амплитуда координаты $x$ при различных значениях $\varepsilon$.}
+    \label{fig:excitement_amplitude}
+\end{figure}
+
+Локализуем зону стохастического возбуждения на основе 10 симуляций (Рис. \ref{fig:excitement_zone}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{excitement_zone.png}
+    \caption{$\varepsilon$-зона стохастического возбуждения.}
+    \label{fig:excitement_zone}
+\end{figure}
+
+
+(б) Построим временные ряды при различных значениях $\varepsilon$: с возбуждением и без возбуждения (Рис. \ref{fig:time_series_1_1}, \ref{fig:time_series_1_01}).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{time_series_a=1,1.png}
+    \caption{Временные ряды для $a=1.1$.}
+    \label{fig:time_series_1_1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{time_series_a=1,01.png}
+    \caption{Временные ряды для $a=1.01$.}
+    \label{fig:time_series_1_01}
+\end{figure}
+
+
+
+\newpage
+\subsection{Доверительные эллипсы в допороговой и надпороговой зонах}
+
+Построим доверительные эллипсы в допороговой и надпороговой зонах для $a = 1.1$, $a = 1.01$ (Рис. \ref{fig:confidence_ellipse_1_1}, \ref{fig:confidence_ellipse_1_01}).
+
+В режиме без возбуждения доверительные эллипсы полностью ложатся в допороговую зону, и траектории совершают лишь небольшие колебания вокруг устойчивого равновесия.
+В режиме возбуждения эллипсы захватывают надпороговую зону, и шум заставляет траектории выходить из окрестности равновесия на предельный цикл.
+% Это особенно хорошо видно при $a = 1.01$.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{confidence_ellipse_a=1,1_deterministic.png}
+    \caption{Доверительные эллипсы для $a=1.1$.}
+    \label{fig:confidence_ellipse_1_1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{confidence_ellipse_a=1,01_deterministic.png}
+    \caption{Доверительные эллипсы для $a=1.01$.}
+    \label{fig:confidence_ellipse_1_01}
+\end{figure}
